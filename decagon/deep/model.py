@@ -59,6 +59,7 @@ class DecagonModel(Model):
         self.adj_mats = {et: [
             placeholders['adj_mats_%d,%d,%d' % (et[0], et[1], k)] for k in range(n)]
             for et, n in self.edge_types.items()}
+        import pdb
         self.build()
 
     def _build(self):
@@ -71,6 +72,8 @@ class DecagonModel(Model):
                 act=lambda x: x, dropout=self.dropout,
                 logging=self.logging)(self.inputs[j]))
 
+        import pdb
+        pdb.set_trace()
         for i, hid1 in self.hidden1.items():
             self.hidden1[i] = tf.nn.relu(tf.add_n(hid1))
 

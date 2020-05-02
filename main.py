@@ -16,16 +16,21 @@ from decagon.deep.model import DecagonModel
 from decagon.deep.minibatch import EdgeMinibatchIterator
 from decagon.utility import rank_metrics, preprocessing
 
+from decagon.data_preprocessing.AdjacencyMatrixBuilder import AdjacencyMatrixBuilder
+from decagon.data_preprocessing.AdjacencyMatricesWriter import AdjacencyMatricesWriter
+
 # Train on CPU (hide GPU) due to memory constraints
-os.environ['CUDA_VISIBLE_DEVICES'] = ""
+#os.environ['CUDA_VISIBLE_DEVICES'] = ""
 
 # Train on GPU
-# os.environ["CUDA_DEVICE_ORDER"] = 'PCI_BUS_ID'
-# os.environ["CUDA_VISIBLE_DEVICES"] = '0'
-# config = tf.ConfigProto()
-# config.gpu_options.allow_growth = True
+os.environ["CUDA_DEVICE_ORDER"] = 'PCI_BUS_ID'
+os.environ["CUDA_VISIBLE_DEVICES"] = '0'
+config = tf.ConfigProto()
+config.gpu_options.allow_growth = True
 
 np.random.seed(0)
+
+ITER_LOG_THRESHOLD = 150
 
 ###########################################################
 #
@@ -33,6 +38,8 @@ np.random.seed(0)
 #
 ###########################################################
 
+def shouldLog(currIter, lastLogIter):
+    return currIter - lastLogIter > ITER_LOG_THRESHOLD and currIter % 4 == 3
 
 def get_accuracy_scores(edges_pos, edges_neg, edge_type):
     feed_dict.update({placeholders['dropout']: 0})
@@ -70,6 +77,7 @@ def get_accuracy_scores(edges_pos, edges_neg, edge_type):
     preds_all = np.hstack([preds, preds_neg])
     preds_all = np.nan_to_num(preds_all)
     labels_all = np.hstack([np.ones(len(preds)), np.zeros(len(preds_neg))])
+    #import pdb
     predicted = list(zip(*sorted(predicted, reverse=True, key=itemgetter(0))))[1]
 
     roc_sc = metrics.roc_auc_score(labels_all, preds_all)
@@ -113,7 +121,16 @@ def construct_placeholders(edge_types):
 # (3) Train & test the model.
 ####
 
+#adjMtxBuilder = AdjacencyMatrixBuilder(
+#    'data/bio-decagon-combo.csv',
+#    'data/bio-decagon-targets.csv',
+#    'data/bio-decagon-ppi.csv'
+#)
+#adjMatrices = adjMtxBuilder.buildAdjacencyMatrices()
+
 val_test_size = 0.05
+
+# Old stuff
 n_genes = 500
 n_drugs = 400
 n_drugdrug_rel_types = 3
@@ -133,8 +150,22 @@ for i in range(n_drugdrug_rel_types):
         if tmp[d1, d2] == i + 4:
             mat[d1, d2] = mat[d2, d1] = 1.
     drug_drug_adj_list.append(sp.csr_matrix(mat))
-drug_degrees_list = [np.array(drug_adj.sum(axis=0)).squeeze() for drug_adj in drug_drug_adj_list]
 
+# New stuff
+#n_genes = len(adjMtxBuilder.proteinNodeList)
+#n_drugs = len(adjMtxBuilder.drugNodeList)
+#n_drugdrug_rel_types = len(adjMatrices.drugDrugRelationMtxs)
+
+#gene_adj = adjMatrices.ppiMtx #nx.adjacency_matrix(gene_net)
+#gene_degrees = np.array(gene_adj.sum(axis=0)).squeeze()
+#
+#drug_gene_adj = adjMatrices.drugProteinRelationMtx
+#gene_drug_adj = drug_gene_adj.transpose(copy=True)
+#
+#drug_drug_adj_list = list(adjMatrices.drugDrugRelationMtxs.values())
+#
+
+drug_degrees_list = [np.array(drug_adj.sum(axis=0)).squeeze() for drug_adj in drug_drug_adj_list]
 
 # data representation
 adj_mats_orig = {
@@ -225,6 +256,8 @@ minibatch = EdgeMinibatchIterator(
 )
 
 print("Create model")
+import pdb
+pdb.set_trace()
 model = DecagonModel(
     placeholders=placeholders,
     num_feat=num_feat,
@@ -259,10 +292,12 @@ feed_dict = {}
 ###########################################################
 
 print("Train model")
+import pdb
 for epoch in range(FLAGS.epochs):
 
     minibatch.shuffle()
     itr = 0
+    lastLogIter = 0
     while not minibatch.end():
         # Construct feed dictionary
         feed_dict = minibatch.next_minibatch_feed_dict(placeholders=placeholders)
@@ -278,7 +313,9 @@ for epoch in range(FLAGS.epochs):
         train_cost = outs[1]
         batch_edge_type = outs[2]
 
-        if itr % PRINT_PROGRESS_EVERY == 0:
+        if shouldLog(itr, lastLogIter):
+            lastLogIter = itr
+
             val_auc, val_auprc, val_apk = get_accuracy_scores(
                 minibatch.val_edges, minibatch.val_edges_false,
                 minibatch.idx2edge_type[minibatch.current_edge_type_idx])

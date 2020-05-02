@@ -1,0 +1,49 @@
+Edge type= [00, 00, 00]
+Edge type: 0000 Test AUROC score 0.79231
+Edge type: 0000 Test AUPRC score 0.76517
+Edge type: 0000 Test AP@k score 0.83214
+
+Edge type= [00, 00, 01]
+Edge type: 0001 Test AUROC score 0.83399
+Edge type: 0001 Test AUPRC score 0.78057
+Edge type: 0001 Test AP@k score 0.60955
+
+Edge type= [00, 01, 00]
+Edge type: 0002 Test AUROC score 0.80309
+Edge type: 0002 Test AUPRC score 0.77260
+Edge type: 0002 Test AP@k score 0.82234
+
+Edge type= [01, 00, 00]
+Edge type: 0003 Test AUROC score 0.77549
+Edge type: 0003 Test AUPRC score 0.73778
+Edge type: 0003 Test AP@k score 0.70498
+
+Edge type= [01, 01, 00]
+Edge type: 0004 Test AUROC score 0.74081
+Edge type: 0004 Test AUPRC score 0.70751
+Edge type: 0004 Test AP@k score 0.69101
+
+Edge type= [01, 01, 01]
+Edge type: 0005 Test AUROC score 0.75093
+Edge type: 0005 Test AUPRC score 0.69331
+Edge type: 0005 Test AP@k score 0.54890
+
+Edge type= [01, 01, 02]
+Edge type: 0006 Test AUROC score 0.82710
+Edge type: 0006 Test AUPRC score 0.77819
+Edge type: 0006 Test AP@k score 0.68162
+
+Edge type= [01, 01, 03]
+Edge type: 0007 Test AUROC score 0.74178
+Edge type: 0007 Test AUPRC score 0.67786
+Edge type: 0007 Test AP@k score 0.41069
+
+Edge type= [01, 01, 04]
+Edge type: 0008 Test AUROC score 0.77373
+Edge type: 0008 Test AUPRC score 0.70505
+Edge type: 0008 Test AP@k score 0.45570
+
+Edge type= [01, 01, 05]
+Edge type: 0009 Test AUROC score 0.83067
+Edge type: 0009 Test AUPRC score 0.77650
+Edge type: 0009 Test AP@k score 0.64486

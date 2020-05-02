@@ -34,7 +34,7 @@ def dropout_sparse(x, keep_prob, num_nonzero_elems):
 class MultiLayer(object):
     """Base layer class. Defines basic API for all layer objects.
 
-    # Properties    
+    # Properties
         name: String, defines the variable scope of the layer.
 
     # Methods

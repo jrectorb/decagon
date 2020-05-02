@@ -17,6 +17,7 @@ class EdgeMinibatchIterator(object):
     batch_size -- size of the minibatches
     """
     def __init__(self, adj_mats, feat, edge_types, batch_size=100, val_test_size=0.01):
+        import pdb
         self.adj_mats = adj_mats
         self.feat = feat
         self.edge_types = edge_types
@@ -45,6 +46,7 @@ class EdgeMinibatchIterator(object):
 
         # Function to build test and val sets with val_test_size positive links
         self.adj_train = {edge_type: [None]*n for edge_type, n in self.edge_types.items()}
+        import pdb
         for i, j in self.edge_types:
             for k in range(self.edge_types[i,j]):
                 print("Minibatch edge type:", "(%d, %d, %d)" % (i, j, k))
