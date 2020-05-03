@@ -23,7 +23,7 @@ class ArgParser:
         errStr = ''
         if self.args is None:
             errStr = 'Parse has not yet been called on ArgParser object'
-        else if not hasattr(self.args, key):
+        elif not hasattr(self.args, key):
             errStr = 'Did not have arg %s in parsed args' % key
         else:
             errStr = 'Arg %s was not specified in process invocation' % key

@@ -16,7 +16,7 @@ class Config:
     def getSetting(self, settingName):
         if hasattr(self.argParserObj, settingName):
             return getattr(self.argParserObj, settingName)
-        else if settingName in self.confFile:
+        elif settingName in self.confFile:
             return self.confFile[settingName]
         else:
             raise KeyError(

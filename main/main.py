@@ -1,20 +1,22 @@
+from Utils import Config
+
 import sys
 
-def _getConfig():
+def _getConfig() -> Config:
     args = ArgParser().Parse()
     return Config(args)
 
-def _getAdjMtxInfos(conf):
-    adjMtxInfosBuilder = AdjacencyMatrixInformationBuilderFactory.BuildBuilder(conf)
-    return adjMtxInfosBuilder.Build()
+def _getAdjacencyMatrices(conf: Config) -> AdjacencyMatrices:
+    adjacencyMatricesBuilder = AdjacencyMatricesBuilderFactory.buildBuilder(conf)
+    return adjacencyMatricesBuilder.build()
 
-def main():
-    conf = _getConfig()
-    adjMtxInfos = _getAdjMtxInfos(conf)
+def main() -> int:
+    config: Config = _getConfig()
+    adjacencyMatrices: AdjacencyMatrices = _getAdjacencyMatrices(config)
 
-    model = _getModel(adjMtxInfos, conf)
-    optimizer = _getOptimizer(adjMtxInfos, conf)
-    trainingSetIterator = _getTrainingSetItertaor(adjMtxInfos, conf)
+    model = _getModel(adjacencyMatrices, config)
+    optimizer = _getOptimizer(adjacencyMatrices, config)
+    trainingSetIterator = _getTrainingSetItertaor(adjacencyMatrices, config)
 
     trainer = TrainerFactory.BuildTrainer(
         conf,
@@ -31,3 +33,4 @@ def main():
 
 if __name__ == '__main__':
     sys.exit(main())
+
