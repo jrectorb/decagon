@@ -22,7 +22,7 @@ def main() -> int:
         conf,
         model,
         optimizer,
-        trainingSetIterator
+        batchIterator
     )
 
     trainedModel = trainer.Train()

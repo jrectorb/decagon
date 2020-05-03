@@ -1,6 +1,6 @@
 from enum import Enum
 
-class RelationEnum(Enum):
+class ArgParseEnum(Enum):
     """
     You may inherit from this enum to use a setting compatible with
     argparse.
