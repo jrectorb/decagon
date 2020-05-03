@@ -3,22 +3,22 @@ from typings import Map
 
 Initializer = Callable[[Config], None]
 
-class BaseAdjacencyMatricesBuilder(metaclass=ABCMeta):
-    initializers: ClassVar[Dict[AdjacencyMatricesType, Initializer]] = {}
+class BaseNodeListsBuilder(metaclass=ABCMeta):
+    initializers: ClassVar[Dict[DataSetType, Initializer]] = {}
 
     def __init_subclass__(
         cls,
-        adjacencyMatricesType: AdjacencyMatricesType,
+        dataSetType: DataSetType,
         **kwargs
     ) -> None:
         super().__init_subclass__(cls, **kwargs)
-        initializers[adjacencyMatricesType] = cls.__init__
+        initializers[DataSetType] = cls.__init__
 
     @abstractmethod
-    def __init__(self, nodeLists: NodeLists, config: Config) -> None:
+    def __init__(self, config: Config) -> None:
         pass
 
     @abstractmethod
-    def build(self) -> AdjacencyMatrices:
+    def build(self) -> NodeLists:
         pass
 

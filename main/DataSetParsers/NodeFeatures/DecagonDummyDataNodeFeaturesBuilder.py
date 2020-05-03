@@ -1,8 +1,3 @@
-
-
-RelationIDToGraph = Dict[str, Type[nx.Graph]]
-RelationIDToSparseMtx = Dict[str, Type[sp.spmatrix]]
-
 class DecagonPublicDataAdjacencyMatricesBuilder(
     BaseAdjacencyMatricesBuilder,
     adjacencyMatricesType = AdjacencyMatricesType.DecagonDummyData
