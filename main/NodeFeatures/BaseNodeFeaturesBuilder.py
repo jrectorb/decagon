@@ -1,24 +1,24 @@
 from abc import ABCMeta, abstractmethod
-from typings import Map
+from typings import Dict, TypeVar
 
 Initializer = Callable[[Config], None]
 
-class BaseAdjacencyMatricesBuilder(metaclass=ABCMeta):
-    initializers: ClassVar[Dict[AdjacencyMatricesType, Initializer]] = {}
+class BaseDataSetBuilder(metaclass=ABCMeta):
+    initializers: ClassVar[Dict[DataSetType, Initializer]] = {}
 
     def __init_subclass__(
         cls,
-        adjacencyMatricesType: AdjacencyMatricesType,
+        dataSetType: DataSetType,
         **kwargs
     ) -> None:
         super().__init_subclass__(cls, **kwargs)
-        initializers[adjacencyMatricesType] = cls.__init__
+        initializers[dataSetType] = cls.__init__
 
     @abstractmethod
     def __init__(self, config: Config) -> None:
         pass
 
     @abstractmethod
-    def build() -> AdjacencyMatrices:
+    def build() -> NodeFeatures:
         pass
 
