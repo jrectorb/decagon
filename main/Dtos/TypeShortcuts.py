@@ -1,4 +1,6 @@
-from typing import List, Dict, Type
+from typing import List, Dict, Type, NewType
+from .DrugId import DrugId
+from .ProteinId import ProteinId
 
 import networkx as nx
 import scipy.sparse as sp

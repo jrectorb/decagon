@@ -11,7 +11,7 @@ class DecagonPublicDataAdjacencyMatricesBuilder(
     BaseAdjacencyMatricesBuilder,
     adjacencyMatricesType = AdjacencyMatricesType.DecagonPublicData
 ):
-    def __init__(self, config: Config) -> None:
+    def __init__(self, nodeLists: NodeLists, config: Config) -> None:
         self.drugDrugRelationGraph: nx.MultiGraph = nx.read_edgelist(
             config.getSetting('DecagonDrugDrugRelationsFilename'),
             delimiter=',',
@@ -32,8 +32,8 @@ class DecagonPublicDataAdjacencyMatricesBuilder(
         # When building adjacency matrices with networkx, we can
         # guarantee ordering of the built matrices.  Thus, we precompute
         # them here so they can be used later in the building of the matrices.
-        self.drugNodeList: EdgeList = self._getOrderedDrugNodeList()
-        self.proteinNodeList: EdgeList = self._getOrderedProteinNodeList()
+        self.drugNodeList: EdgeList = nodeLists.drugNodes
+        self.proteinNodeList: EdgeList = nodeLists.proteinNodes
 
     def build(self) -> AdjacencyMatrices:
         return AdjacencyMatrices(

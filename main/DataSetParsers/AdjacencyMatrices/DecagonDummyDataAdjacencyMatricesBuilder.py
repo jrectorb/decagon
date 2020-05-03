@@ -7,10 +7,10 @@ class DecagonPublicDataAdjacencyMatricesBuilder(
     BaseAdjacencyMatricesBuilder,
     adjacencyMatricesType = AdjacencyMatricesType.DecagonDummyData
 ):
-    def __init__(self, config: Config) -> None:
+    def __init__(self, nodeLists: NodeLists, config: Config) -> None:
         self.numDrugDrugRelationTypes: int = config.getInt('NumDrugDrugRelationTypes')
-        self.numProteins: int              = config.getInt('NumProteins')
-        self.numDrugs: int                 = config.getInt('NumDrugs')
+        self.numProteins: int              = len(nodeLists.proteinNodes)
+        self.numDrugs: int                 = len(nodeLists.drugNodes)
 
     def build(self) -> AdjacencyMatrices:
         drugProteinRelationMtx: sp.csr_matrix = self._buildDrugProteinRelationMtx()

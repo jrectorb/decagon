@@ -15,10 +15,10 @@ class BaseAdjacencyMatricesBuilder(metaclass=ABCMeta):
         initializers[adjacencyMatricesType] = cls.__init__
 
     @abstractmethod
-    def __init__(self, config: Config) -> None:
+    def __init__(self, nodeLists: NodeLists, config: Config) -> None:
         pass
 
     @abstractmethod
-    def build() -> AdjacencyMatrices:
+    def build(self) -> AdjacencyMatrices:
         pass
 

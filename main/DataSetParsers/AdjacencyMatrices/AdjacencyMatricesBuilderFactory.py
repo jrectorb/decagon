@@ -7,7 +7,7 @@ AdjMtxBuilder = Type[AdjacencyMatricesBuilder]
 
 class AdjacencyMatricesBuilderFactory:
     @staticmethod
-    def buildBuilder(config: Config) -> AdjMtxBuilder:
+    def buildBuilder(nodeLists: NodeLists, config: Config) -> AdjMtxBuilder:
         adjacencyMatricesType: AdjacencyMatricesType = config.getSetting(
             'AdjacencyMatricesType'
         )
@@ -15,5 +15,5 @@ class AdjacencyMatricesBuilderFactory:
         initializer: Callable[[Config], AdjMtxBuilder] = \
             BaseAdjacencyMatricesBuilder.initializers[adjacencyMatricesType]
 
-        return initializer(config)
+        return initializer(nodeLists, config)
 
