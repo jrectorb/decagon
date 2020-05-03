@@ -1,16 +1,17 @@
-import argparse
+from typings import ClassVar
+from argparse import ArgumentParser, Namespace
 
 class ArgParser:
-    DESCRIPTION_STR = '''
+    DESCRIPTION_STR: ClassVar[str] = '''
         Trains the main (currently decagon) model. Code is modular, and provides
         a series of configuration options for modules to use (e.g., learning policy,
         optimizer, graph builder).
     '''
 
-    def __init__(self):
-        self.args = None
+    def __init__(self) -> None:
+        self.parser: ArgumentParser = ArgumentParser(description=self._getDescription())
+        self.args: Namespace = None
 
-        self.parser = argparse.ArgumentParser(description=self._getDescription())
         self._addArgs()
 
     def __getattr__(self, key):
@@ -19,7 +20,7 @@ class ArgParser:
         else:
             raise AttributeError(self._getErrStr(key))
 
-    def _getErrStr(self, key):
+    def _getErrStr(self, key: str) -> str:
         errStr = ''
         if self.args is None:
             errStr = 'Parse has not yet been called on ArgParser object'
@@ -30,9 +31,9 @@ class ArgParser:
 
         return errStr
 
-    def _addArgs(self):
+    def _addArgs(self) -> None:
         self.parser.add_argument()
 
-    def parse(self):
+    def parse(self) -> None:
         self.args = self.parser.parse_args()
 

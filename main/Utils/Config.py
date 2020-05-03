@@ -4,20 +4,26 @@ import json
 class Config:
     CONF_FILE_PATH = 'configuration.json'
 
-    def __init__(self, argParserObj):
+    def __init__(self, argParserObj: ArgParser) -> None:
         if argParserObj is None or not isinstance(argParserObj, ArgParser):
             raise TypeError('argParserObj was passed to config uninitialized')
 
-        self.argParserObj = argParserObj
+        self.argParserObj: ArgParser = argParserObj
 
-        with open(CONF_FILE_PATH) as f:
-            self.confFile = json.load(f)
+        with open(self._getConfFilename()) as f:
+            self.confJson: Dict[str, str] = json.load(f)
 
-    def getSetting(self, settingName):
+    def _getConfFilename(self) -> str:
+        if hasattr(self.argParserObj, 'config'):
+            return getattr(self.argParserObj, 'config')
+        else:
+            return CONF_FILE_PATH
+
+    def getSetting(self, settingName: str):
         if hasattr(self.argParserObj, settingName):
             return getattr(self.argParserObj, settingName)
-        elif settingName in self.confFile:
-            return self.confFile[settingName]
+        elif settingName in self.confJson:
+            return self.confJson[settingName]
         else:
             raise KeyError(
                 'Setting %s not in args or configuration file' % settingName

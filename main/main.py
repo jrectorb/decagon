@@ -16,7 +16,7 @@ def main() -> int:
 
     model = _getModel(adjacencyMatrices, config)
     optimizer = _getOptimizer(adjacencyMatrices, config)
-    trainingSetIterator = _getTrainingSetItertaor(adjacencyMatrices, config)
+    batchIterator = _getBatchIterator(adjacencyMatrices, config)
 
     trainer = TrainerFactory.BuildTrainer(
         conf,
