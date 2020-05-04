@@ -21,7 +21,12 @@ class DataSetBuilder:
 
     @staticmethod
     def _getNodeLists(dataSetType: DataSetType, config: Config) -> NodeLists:
-        nodeListsBuilder = NodeListsBuilderFactory.buildBuilder(dataSetType, config)
+        nodeListsBuilder = ObjectFactory.build(
+            BaseNodeListsBuilder,
+            dataSetType,
+            config
+        )
+
         return nodeListsBuilder.build()
 
     @staticmethod
@@ -30,7 +35,8 @@ class DataSetBuilder:
         dataSetType: DataSetType,
         config: Config
     ) -> AdjacencyMatrices:
-        adjacencyMatricesBuilder = AdjacencyMatricesBuilderFactory.buildBuilder(
+        adjacencyMatricesBuilder = ObjectFactory.build(
+            BaseAdjacencyMatricesBuilder,
             nodeLists,
             dataSetType,
             conf,
@@ -44,7 +50,8 @@ class DataSetBuilder:
         dataSetType: DataSetType,
         config: Config
     ) -> AdjacencyMatrices:
-        nodeFeaturesBuilder = NodeFeaturesBuilderFactory.buildBuilder(
+        nodeFeaturesBuilder = ObjectFactory.build(
+            BaseNodeFeaturesBuilder,
             nodeLists,
             dataSetType,
             conf,
