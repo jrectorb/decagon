@@ -1,5 +1,8 @@
 from abc import ABCMeta, abstractmethod
-from typings import Map
+from ..Dtos.AdjacencyMatrices import AdjacencyMatrices
+from ..Dtos.NodeLists import NodeLists
+from ..Utils.BaseFactorizableClass import BaseFactorizableClass
+from ..Utils.Config import Config
 
 class BaseAdjacencyMatricesBuilder(BaseFactorizableClass, metaclass=ABCMeta):
     @abstractmethod
