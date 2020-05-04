@@ -22,17 +22,9 @@ def main() -> int:
     config: Config = _getConfig()
     dataSet: DataSet = _getDataSet(config)
 
-    model = _getModel(dataSet, config)
-    optimizer = _getOptimizer(dataSet, config)
-    batchIterator = _getBatchIterator(dataSet, config)
+    trainable: Trainable = _getTrainable(dataSet, config)
 
-    trainer = TrainerFactory.BuildTrainer(
-        conf,
-        model,
-        optimizer,
-        batchIterator
-    )
-
+    trainer = TrainerFactory.BuildTrainer(trainable, config)
     trainedModel = trainer.Train()
 
     AccuracyFinder.RecordAccuracy(adjMtxInfos, trainedModel)

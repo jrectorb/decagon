@@ -1,6 +1,7 @@
 from ..Utils import Config
 from collections import defaultdict
 import csv
+import numpy as np
 
 DrugFeaturesDict = Dict[DrugId, List[SideEffectId]]
 
@@ -22,7 +23,7 @@ class DecagonPublicDataNodeFeaturesBuilder(
     def _getProteinNodeFeatures(self) -> sp.coo_matrix:
         return sp.identity(self.numProteins, format=sp.coo_matrix)
 
-    def _getProteinNodeFeatures(self) -> np.array:
+    def _getDrugNodeFeatures(self) -> sp.coo_matrix:
         drugFeaturesDict = self._getDrugFeaturesDict()
 
         drugIdToIdx = self._getDrugIdToIdx(drugFeaturesDict.Keys())
@@ -39,7 +40,7 @@ class DecagonPublicDataNodeFeaturesBuilder(
 
                 result[drugIdx, sideEffectIdx] = 1
 
-        return result
+        return sp.coo_matrix(result)
 
     def _getDrugFeaturesDict(self) -> DrugFeaturesDict:
         DRUG_ID_IDX     = 0
@@ -57,12 +58,12 @@ class DecagonPublicDataNodeFeaturesBuilder(
         return result
 
     def _getDrugIdToIdx(self) -> Dict[DrugId, int]:
-        return {drugId: i for i, drugId in enumerate(self.drugNodeList)}
+        return {drugId: idx for idx, drugId in enumerate(self.drugNodeList)}
 
     def _getSideEffectIdToIdx(
         self,
         sideEffects: dict_values
     ) -> Dict[SideEffectId, int]:
         uniqueSideEffects = np.unique(np.concatenate(sideEffects))
-        return {sideEffect: i for i, sideEffect in enumerate(uniqueSideEffects)}
+        return {sideEffect: idx for idx, sideEffect in enumerate(uniqueSideEffects)}
 
