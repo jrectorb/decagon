@@ -47,7 +47,10 @@ class DecagonPublicDataAdjacencyMatricesBuilder(
         graphs = self._getDrugDrugRelationGraphs(validEdgeSets)
 
         adjMtxs = {
-            relID: nx.adjacency_matrix(graph) for relID, graph in graphs.items()
+            relID: nx.adjacency_matrix(
+                graph,
+                nodelist=self.drugNodeList
+            ) for relID, graph in graphs.items()
         }
 
         return adjMtxs
@@ -106,35 +109,5 @@ class DecagonPublicDataAdjacencyMatricesBuilder(
 
     def _buildPpiMtx(self) -> sp.spmatrix:
         self.ppiGraph.add_nodes_from(self._getDrugProteinGraphProteins())
-        return nx.adjacency_matrix(self.ppiGraph)
-
-    def _getOrderedDrugNodeList(self) -> EdgeList:
-        allDrugs = set(
-            self.drugDrugRelationGraph.nodes
-        ).union(set(self._getDrugProteinGraphDrugs()))
-
-        return sorted(list(allDrugs))
-
-    def _getDrugProteinGraphDrugs(self) -> Iterator[tuple]:
-        # In preprocessed dataset, all drug identifiers are prefixed with 'CID'
-        # while protein identifiers are not
-        return filter(
-            lambda x: x[:3] == 'CID',
-            self.drugProteinRelationGraph.nodes
-        )
-
-    def _getOrderedProteinNodeList(self) -> EdgeList:
-        allProteins = set(
-            self.ppiGraph.nodes
-        ).union(set(self._getDrugProteinGraphProteins()))
-
-        return sorted(list(allProteins))
-
-    def _getDrugProteinGraphProteins(self) -> Iterator[tuple]:
-        # In preprocessed dataset, all drug identifiers are prefixed with 'CID'
-        # while protein identifiers are not
-        return filter(
-            lambda x: x[:3] != 'CID',
-            self.drugProteinRelationGraph.nodes
-        )
+        return nx.adjacency_matrix(self.ppiGraph, nodelist=self.proteinNodeList)
 

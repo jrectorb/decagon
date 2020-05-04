@@ -7,13 +7,13 @@ AdjMtxBuilder = Type[AdjacencyMatricesBuilder]
 
 class AdjacencyMatricesBuilderFactory:
     @staticmethod
-    def buildBuilder(nodeLists: NodeLists, config: Config) -> AdjMtxBuilder:
-        adjacencyMatricesType: AdjacencyMatricesType = config.getSetting(
-            'AdjacencyMatricesType'
-        )
-
+    def buildBuilder(
+        nodeLists: NodeLists,
+        dataSetType: DataSetType,
+        config: Config
+    ) -> AdjMtxBuilder:
         initializer: Callable[[Config], AdjMtxBuilder] = \
-            BaseAdjacencyMatricesBuilder.initializers[adjacencyMatricesType]
+            BaseAdjacencyMatricesBuilder.initializers[dataSetType]
 
         return initializer(nodeLists, config)
 

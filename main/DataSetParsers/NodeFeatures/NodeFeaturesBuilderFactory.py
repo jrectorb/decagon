@@ -3,17 +3,13 @@ from typing import Type, Callable
 from .AdjacencyMatricesTypes import AdjacencyMatricesTypes
 from ..Utils.Config import Config
 
-AdjMtxBuilder = Type[AdjacencyMatricesBuilder]
+FeaturesBuilder = Type[BaseNodeFeaturesBuilder]
 
-class AdjacencyMatricesBuilderFactory:
+class NodeFeaturesBuilderFactory:
     @staticmethod
-    def buildBuilder(config: Config) -> AdjMtxBuilder:
-        adjacencyMatricesType: AdjacencyMatricesType = config.getSetting(
-            'AdjacencyMatricesType'
-        )
-
-        initializer: Callable[[Config], AdjMtxBuilder] = \
-            BaseAdjacencyMatricesBuilder.initializers[adjacencyMatricesType]
+    def buildBuilder(dataSetType: DataSetType, config: Config) -> FeaturesBuilder:
+        initializer: Callable[[Config], FeaturesBuilder] = \
+            BaseNodeFeaturesBuilder.initializers[dataSetType]
 
         return initializer(config)
 

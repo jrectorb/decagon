@@ -20,13 +20,11 @@ def _getAdjacencyMatrices(nodeLists: NodeLists, conf: Config) -> AdjacencyMatric
 
 def main() -> int:
     config: Config = _getConfig()
+    dataSet: DataSet = _getDataSet(config)
 
-    nodeLists: NodeLists = _getNodeLists(config)
-    adjacencyMatrices: AdjacencyMatrices = _getAdjacencyMatrices(nodeLists, config)
-
-    model = _getModel(adjacencyMatrices, config)
-    optimizer = _getOptimizer(adjacencyMatrices, config)
-    batchIterator = _getBatchIterator(adjacencyMatrices, config)
+    model = _getModel(dataSet, config)
+    optimizer = _getOptimizer(dataSet, config)
+    batchIterator = _getBatchIterator(dataSet, config)
 
     trainer = TrainerFactory.BuildTrainer(
         conf,

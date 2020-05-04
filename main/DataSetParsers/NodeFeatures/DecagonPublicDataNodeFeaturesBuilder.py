@@ -1,140 +1,68 @@
-from collections import defaultdict
-from .AdjacencyMatrices import AdjacencyMatrices
-from ..Dtos.TypeShortcuts import EdgeList, RelationIDToEdgeList, RelationIDToGraph, RelationIDToSparseMtx
-from ..Dtos.Enums import AdjacencyMatricesType
 from ..Utils import Config
-import networkx as nx
-import numpy as np
-import scipy.sparse as sp
+from collections import defaultdict
+import csv
 
-class DecagonPublicDataAdjacencyMatricesBuilder(
-    BaseAdjacencyMatricesBuilder,
-    adjacencyMatricesType = AdjacencyMatricesType.DecagonPublicData
+DrugFeaturesDict = Dict[DrugId, List[SideEffectId]]
+
+class DecagonPublicDataNodeFeaturesBuilder(
+    BaseNodeFeaturesBuilder,
+    dataSetType = DataSetType.DecagonPublicData
 ):
-    def __init__(self, config: Config) -> None:
-        self.drugDrugRelationGraph: nx.MultiGraph = nx.read_edgelist(
-            config.getSetting('DecagonDrugDrugRelationsFilename'),
-            delimiter=',',
-            create_using=nx.MultiGraph(),
-            data=(('relationType', str),)
+    def __init__(self, nodeLists: NodeLists, config: Config) -> None:
+        self.filename: str = config.getSetting('NodeFeaturesFilename')
+        self.drugNodeList: EdgeList = nodeLists.drugNodeList
+        self.numProteins: int = len(nodeLists.proteinNodeList)
+
+    def build(self) -> NodeFeatures:
+        return NodeFeatures(
+            proteinNodeFeatures=self._getProteinNodeFeatures(),
+            drugNodeFeatures=self._getDrugNodeFeatures(),
         )
 
-        self.drugProteinRelationGraph: nx.Graph = nx.read_edgelist(
-            config.getSetting('DecagonDrugProteinRelationsFilename'),
-            delimiter=','
-        )
+    def _getProteinNodeFeatures(self) -> sp.coo_matrix:
+        return sp.identity(self.numProteins, format=sp.coo_matrix)
 
-        self.ppiGraph: nx.Graph = nx.read_edgelist(
-            config.getSetting('DecagonProteinProteinRelationsFilename'),
-            delimiter=','
-        )
+    def _getProteinNodeFeatures(self) -> np.array:
+        drugFeaturesDict = self._getDrugFeaturesDict()
 
-        # When building adjacency matrices with networkx, we can
-        # guarantee ordering of the built matrices.  Thus, we precompute
-        # them here so they can be used later in the building of the matrices.
-        self.drugNodeList: EdgeList = self._getOrderedDrugNodeList()
-        self.proteinNodeList: EdgeList = self._getOrderedProteinNodeList()
+        drugIdToIdx = self._getDrugIdToIdx(drugFeaturesDict.Keys())
+        sideEffectIdToIdx = self._getSideEffectIdToIdx(drugFeaturesDict.Values())
 
-    def build(self) -> AdjacencyMatrices:
-        return AdjacencyMatrices(
-            drugDrugRelationMtxs=self._buildDrugDrugRelationMtxs(),
-            drugProteinRelationMtx=self._buildDrugProteinRelationMtx(),
-            ppiMtx=self._buildPpiMtx(),
-        )
+        result = np.zeros((len(drugIdToIdx), len(sideEffectIdToIdx)))
+        for drugId, drugSideEffects in drugFeaturesDict:
+            for sideEffectId in drugSideEffects:
+                if drugId not in drugIdToIdx:
+                    continue
 
-    def _buildDrugDrugRelationMtxs(self) -> RelationIDToSparseMtx:
-        validEdgeSets = self._getValidEdgeSets()
-        graphs = self._getDrugDrugRelationGraphs(validEdgeSets)
+                drugIdx = drugIdToIdx[drugId]
+                sideEffectIdx = sideEffectIdToIdx[sideEffectId]
 
-        adjMtxs = {
-            relID: nx.adjacency_matrix(graph) for relID, graph in graphs.items()
-        }
-
-        return adjMtxs
-
-    def _getDrugDrugRelationGraphs(
-        self,
-        validEdgeSets: RelationIDToEdgeList
-    ) -> RelationIDToGraph:
-        graphs = {}
-        for relID, validEdgeSet in validEdgeSets.items():
-            graph = nx.Graph()
-
-            graph.add_nodes_from(self.drugNodeList)
-            graph.add_edges_from(validEdgeSet)
-
-            graphs[relID] = graph
-
-        return graphs
-
-    def _getValidEdgeSets(self) -> RelationIDToEdgeList:
-        RELATION_TYPE_IDX = 2
-
-        preResult = defaultdict(list)
-        for edge in self.drugDrugRelationGraph.edges:
-            # Remove edge type from edge
-            truncatedEdge = edge[:2]
-            preResult[edge[RELATION_TYPE_IDX]].append(truncatedEdge)
-
-        result = {}
-        # Filter out edge types that don't have 500
-        for edgeType, edgeList in preResult.items():
-            if self._isEdgeListValid(edgeList):
-                result[edgeType] = edgeList
+                result[drugIdx, sideEffectIdx] = 1
 
         return result
 
-    def _isEdgeListValid(self, edgeList: EdgeList) -> bool:
-        return len(edgeList) >= 500
+    def _getDrugFeaturesDict(self) -> DrugFeaturesDict:
+        DRUG_ID_IDX     = 0
+        SIDE_EFFECT_IDX = 1
 
-    def _buildDrugProteinRelationMtx(self) -> sp.csr_matrix:
-        drugToIdx = {drug: idx for idx, drug in enumerate(self.drugNodeList)}
-        proteinToIdx = {protein: idx for idx, protein in enumerate(self.proteinNodeList)}
+        result = defaultdict(list)
+        with open(self.filename) as drugFtrsFile:
+            reader = csv.reader(drugFtsFile)
+            for row in reader:
+                drugId = DrugId.fromDecagonFormat(row[DRUG_ID_IDX])
+                sideEffectId = SideEffectId.fromDecagonFormat(row[SIDE_EFFECT_ID])
 
-        drugProteinMtx = np.zeros((len(drugToIdx), len(proteinToIdx)))
-        for edge in self.drugProteinRelationGraph.edges:
-            drug, protein = self._extractDrugProtein(edge)
-            drugProteinMtx[drugToIdx[drug], proteinToIdx[protein]] = 1
+                result[drugId].append(sideEffectId)
 
-        return sp.csr_matrix(drugProteinMtx)
+        return result
 
-    def _extractDrugProtein(self, edge: tuple) -> tuple:
-        drugIdx = 0 if edge[0][:3] == 'CID' else 1
-        proteinIdx = 1 - drugIdx
+    def _getDrugIdToIdx(self) -> Dict[DrugId, int]:
+        return {drugId: i for i, drugId in enumerate(self.drugNodeList)}
 
-        return edge[drugIdx], edge[proteinIdx]
-
-    def _buildPpiMtx(self) -> sp.spmatrix:
-        self.ppiGraph.add_nodes_from(self._getDrugProteinGraphProteins())
-        return nx.adjacency_matrix(self.ppiGraph)
-
-    def _getOrderedDrugNodeList(self) -> EdgeList:
-        allDrugs = set(
-            self.drugDrugRelationGraph.nodes
-        ).union(set(self._getDrugProteinGraphDrugs()))
-
-        return sorted(list(allDrugs))
-
-    def _getDrugProteinGraphDrugs(self) -> Iterator[tuple]:
-        # In preprocessed dataset, all drug identifiers are prefixed with 'CID'
-        # while protein identifiers are not
-        return filter(
-            lambda x: x[:3] == 'CID',
-            self.drugProteinRelationGraph.nodes
-        )
-
-    def _getOrderedProteinNodeList(self) -> EdgeList:
-        allProteins = set(
-            self.ppiGraph.nodes
-        ).union(set(self._getDrugProteinGraphProteins()))
-
-        return sorted(list(allProteins))
-
-    def _getDrugProteinGraphProteins(self) -> Iterator[tuple]:
-        # In preprocessed dataset, all drug identifiers are prefixed with 'CID'
-        # while protein identifiers are not
-        return filter(
-            lambda x: x[:3] != 'CID',
-            self.drugProteinRelationGraph.nodes
-        )
+    def _getSideEffectIdToIdx(
+        self,
+        sideEffects: dict_values
+    ) -> Dict[SideEffectId, int]:
+        uniqueSideEffects = np.unique(np.concatenate(sideEffects))
+        return {sideEffect: i for i, sideEffect in enumerate(uniqueSideEffects)}
 
