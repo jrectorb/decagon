@@ -27,7 +27,7 @@ def main() -> int:
     trainer = TrainerFactory.BuildTrainer(trainable, config)
     trainedModel = trainer.Train()
 
-    AccuracyFinder.RecordAccuracy(adjMtxInfos, trainedModel)
+    AccuracyFinder.RecordAccuracy(dataSet, trainedModel)
 
     return 0
 
