@@ -50,13 +50,85 @@ class DecagonDataSet:
         self.flags: Flags = self._getFlags(config)
 
     def _getEdgeTypeDecoderDict(self, config: Config) -> EdgeTypeDecoderDict:
-        pass
+        validDecoders = set(['innerproduct', 'distmult', 'bilinear', 'dedicom'])
 
-    def _getPlaceholdersDict(self, config: Config) -> PlaceholderDict:
-        pass
+        result: EdgeTypeDecoderDict = {}
+
+        result[PPI_GRAPH_EDGE_TYPE] = config.getSetting('PPIEdgeDecoder')
+        result[PPI_TO_DRUG_EDGE_TYPE] = config.getSetting('ProteinToDrugEdgeDecoder')
+        result[DRUG_DRUG_EDGE_TYPE] = config.getSetting('DrugDrugEdgeDecoder')
+
+        if DecagonDataSet._shouldTranspose(config):
+            result[DRUG_TO_PPI_EDGE_TYPE] = config.getSetting('DrugProteinEdgeDecoder')
+
+        return result
+
+    def _getPlaceholdersDict(
+        self,
+        edgeTypeNumMatricesDict: EdgeTypeNumMatricesDict
+    ) -> PlaceholderDict:
+        result: PlaceholderDict = {}
+
+        result['batch'] = tf.placeholder(tf.int32, name='batch')
+        result['degrees'] = tf.placeholder(tf.int32)
+        result['dropout'] = tf.placeholder_with_default(0., shape=())
+
+        result['batch_edge_type_idx'] = tf.placeholder(
+            tf.int32,
+            shape=(),
+            name='batch_edge_type_idx'
+        )
+
+        result['batch_row_edge_type'] = tf.placeholder(
+            tf.int32,
+            shape=(),
+            name='batch_row_edge_type'
+        )
+
+        result['batch_col_edge_type'] = tf.placeholder(
+            tf.int32,
+            shape=(),
+            name='batch_col_edge_type'
+        )
+
+        for edgeType, numMtxsForEdgeType in edgeTypeNumMatricesDict.item():
+            for i in range(numMtxsForEdgeType):
+                key = 'adj_mats_%d,%d,%d' % (edgeType[0], edgeType[1], i)
+                result[key] = tf.sparse_placeholder(tf.float32)
+
+        for x in [DecagonDataSet.PPI_GRAPH_IDX, DecagonDataSet.DRUG_DRUG_GRAPH_IDX]:
+            result['feat_%d' % x] = tf.sparse_placeholder(tf.float32)
+
+        return placeholders
 
     def _getFlags(self, config: Config) -> Flags:
-        pass
+        flags = tf.app.flags
+
+        def defVal(key: str, desc: str, typeToDef: type) -> None:
+            defFxn = None
+            if typeToDef == int:
+                defFxn = flags.DEFINE_integer
+            elif typeToDef == float:
+                defFxn = flags.DEFINE_float
+            elif typeToDef == bool:
+                defFxn = flags.DEFINE_boolean
+            else:
+                raise TypeError('Invalid type')
+
+            defFxn(key, typeToDef(config.getSetting('key')), desc)
+
+        defVal('neg_sample_size', 'Negative sample size.', int)
+        defVal('learning_rate', 'Initial learning rate.', float)
+        defVal('epochs', 'Number of epochs to train.', int)
+        defVal('hidden1', 'Number of units in hidden layer 1.', int)
+        defVal('hidden2', 'Number of units in hidden layer 2.', int)
+        defVal('weight_decay', 'Weight for L2 loss on embedding matrix.', float)
+        defVal('dropout', 'Dropout rate (1 - keep probability).', float)
+        defVal('max_margin', 'Max margin parameter in hinge loss', float)
+        defVal('batch_size', 'Minibatch size.', int)
+        defVal('bias', 'Bias term.', bool)
+
+        return flags.FLAGS
 
     @staticmethod
     def fromDataSet(dataSet: DataSet, config: Config) -> DecagonDataSet:
@@ -93,13 +165,15 @@ class DecagonDataSet:
 
         # Decagon's original code uses transposed matrices to train as well
         # as original matrices.  Here we provide the option to do so too.
-        useTransposedMtxs = bool(
-            config.getSetting('TrainWithTransposedAdjacencyMatrices')
-        )
-        if useTransposedMtxs == True:
+        if DecagonDataSet._shouldTranspose(config):
             DecagonDataSet._augmentAdjMtxDictWithTranspose(result)
 
         return result
+
+    @staticmethod
+    def _shouldTranspose(config: Config) -> bool:
+        strVal = config.getSetting('TrainWithTransposedAdjacencyMatrices')
+        return bool(strVal)
 
     @staticmethod
     def _augmentAdjMtxDictWithTranspose(
@@ -119,7 +193,7 @@ class DecagonDataSet:
         return
 
     @staticmethod
-    def _getFeaturesDict(nodeFeatures: NodeFeatures):
+    def _getFeaturesDict(nodeFeatures: NodeFeatures) -> FeaturesDict:
         return {
             DecagonDataSet.PPI_GRAPH_IDX: nodeFeatures.proteinNodeFeatures,
             DecagonDataSet.DRUG_DRUG_GRAPH_IDX: nodeFeatures.drugNodeFeatures,

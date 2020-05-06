@@ -4,13 +4,8 @@ class Trainable:
     correctly train a model.
     '''
 
-    def __init__(
-        self,
-        dataSetIterator: DataSetIterator,
-        optimizer: Optimizer,
-        model: Model
-    ) -> None:
-        self.dataSetIterator: DataSetIterator = dataSetIterator
-        self.optimizer: Optimizer = optimizer
-        self.model: Model = model
+    def __init__(self, dataSetIterator, optimizer, model):
+        self.dataSetIterator = dataSetIterator
+        self.optimizer = optimizer
+        self.model = model
 
