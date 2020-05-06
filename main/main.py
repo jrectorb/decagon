@@ -18,16 +18,17 @@ def _getAdjacencyMatrices(nodeLists: NodeLists, conf: Config) -> AdjacencyMatric
 
     return adjacencyMatricesBuilder.build()
 
+def _getTrainer(trainable: Trainable, config: Config) -> Type[Trainer]:
+    return ObjectFactory.build(BaseTrainer, trainable, config)
+
 def main() -> int:
     config: Config = _getConfig()
     dataSet: DataSet = _getDataSet(config)
 
     trainable: Trainable = _getTrainable(dataSet, config)
 
-    trainer = TrainerFactory.BuildTrainer(trainable, config)
-    trainedModel = trainer.Train()
-
-    AccuracyFinder.RecordAccuracy(dataSet, trainedModel)
+    trainer: Type[BaseTrainer] = ObjectFactory.build(BaseTrainer, trainable, config)
+    trainer.train()
 
     return 0
 

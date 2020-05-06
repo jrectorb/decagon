@@ -115,7 +115,7 @@ class DecagonDataSet:
             else:
                 raise TypeError('Invalid type')
 
-            defFxn(key, typeToDef(config.getSetting('key')), desc)
+            defFxn(key, typeToDef(config.getSetting(key)), desc)
 
         defVal('neg_sample_size', 'Negative sample size.', int)
         defVal('learning_rate', 'Initial learning rate.', float)

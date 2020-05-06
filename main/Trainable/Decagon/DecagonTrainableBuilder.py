@@ -15,7 +15,12 @@ class DecagonTrainableBuilder(BaseTrainableBuilder):
         model = self._getModel()
         optimizer = self._getOptimizer(model)
 
-        return Trainable(dataSetIterator, optimizer, model)
+        return DecagonTrainable(
+            dataSetIterator,
+            optimizer,
+            model,
+            self.dataSet.placeholders
+        )
 
     def _getDataSetIterator(self) -> EdgeMinibatchIterator:
         return EdgeMinibatchIterator(
