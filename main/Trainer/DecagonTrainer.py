@@ -1,19 +1,9 @@
 from .BaseTrainer import BaseTrainer
+from ..Dtos.Decagon.DecagonTrainingIterationResults import DecagonTrainingIterationResults
 from ..Trainable import Trainable
 from ..Utils.Config import Config
 import time
 import tensorflow as tf
-
-class TrainingIterationResults:
-    def __init__(
-        self,
-        iterationLoss: float,
-        iterationEdgeType: tuple,
-        iterationLatency: float
-    ) -> None:
-        self.iterationLoss: float = iterationLoss
-        self.iterationEdgeType: tuple  = iterationEdgeType
-        self.iterationLatency: float = iterationLatency
 
 class BaseDecagonTrainer(BaseTrainer):
     def __init__(self, trainable: DecagonTrainable, config: Config) -> None:
@@ -44,14 +34,18 @@ class BaseDecagonTrainer(BaseTrainer):
 
         return
 
-    def _trainBatch(self, session: tf.Session) -> TrainingIteraationResults:
+    def _trainBatch(self, session: tf.Session) -> DecagonTrainingIterationResults:
         feedDict = self._getNextFeedDict()
 
         tic = time.time()
         iterationLoss, iterationEdgeType = self._doIterationTraining(session, feedDict)
         toc = time.time()
 
-        return TrainingIterationResults(iterationLoss, iterationEdgeType, toc - tic)
+        return DecagonTrainingIterationResults(
+            iterationLoss,
+            toc - tic,
+            iterationEdgeType
+        )
 
     def _getNextFeedDict(self) -> Dict:
         preResult = self.dataSetIterator.next_minibatch_feed_dict(self.placeholders)
