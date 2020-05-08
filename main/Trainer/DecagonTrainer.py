@@ -48,6 +48,10 @@ class BaseDecagonTrainer(BaseTrainer):
         )
 
     def _getNextFeedDict(self) -> Dict:
+        '''
+        In the result dict, keys are tf.placeholder objects while result
+        types may vary
+        '''
         preResult = self.dataSetIterator.next_minibatch_feed_dict(self.placeholders)
 
         return self.dataSetIterator.update_feed_dict(

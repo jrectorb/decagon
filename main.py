@@ -74,6 +74,9 @@ def get_accuracy_scores(edges_pos, edges_neg, edge_type):
         predicted.append((score, edge_ind))
         edge_ind += 1
 
+    import pdb
+    pdb.set_trace()
+
     preds_all = np.hstack([preds, preds_neg])
     preds_all = np.nan_to_num(preds_all)
     labels_all = np.hstack([np.ones(len(preds)), np.zeros(len(preds_neg))])

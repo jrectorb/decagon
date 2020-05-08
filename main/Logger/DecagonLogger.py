@@ -1,5 +1,6 @@
 from .BaseLogger import BaseLogger
 from ..Utils.Config import Config
+import tensorflow as tf
 
 class DecagonLogger(BaseLogger):
     '''
@@ -8,8 +9,10 @@ class DecagonLogger(BaseLogger):
 
     def __init__(
         self,
+        session: tf.Session,
         optimizer: Optimizer,
         placeholders: PlaceholdersDict,
+        miniBatchIterator: EdgeMinibatchIterator,
         config: Config
     ) -> None:
         super().__init__(config)
@@ -21,6 +24,7 @@ class DecagonLogger(BaseLogger):
         self.trainResultLogDir: str = config.getSetting('TrainIterationResultDir')
         self.checkpointDir: str = config.getSetting('CheckpointDirectory')
 
+        self.miniBatchIterator: EdgeMinibatchIterator = miniBatchIterator
         self.accuracyEvaluator: DecagonAccuracyEvaluator = DecagonAccuracyEvaluator(
             optimizer,
             placeholders,
@@ -31,8 +35,12 @@ class DecagonLogger(BaseLogger):
     def _shouldCheckpoint(self):
         return (self.numIterationsDone % self.numItersPerCheckpoint) == 0
 
-    def log(self, iterationResults: DecagonTrainingIterationResults) -> None:
-        accuracyScores = self.accuracyEvaluator.evaluate(iterationResults)
+    def log(
+        self,
+        feedDict: FeedDict,
+        iterationResults: DecagonTrainingIterationResults
+    ) -> None:
+        accuracyScores = self._computeAccuracyScores(feedDict)
 
         self._writeResultsToFileSystem(iterationResults, accuracyScores)
         self._writeResultsToStdout(iterationResults, accuracyScores)
@@ -41,6 +49,14 @@ class DecagonLogger(BaseLogger):
             self._checkpointModel()
 
         return
+
+    def _computeAccuracyScores(self, feedDict: FeedDict) -> AccuracyScores:
+        return self.accuracyEvaluator.evaluate(
+            feedDict,
+            self.miniBatchIterator.idx2edge_type[minibatch.current_edge_type_idx],
+            self.miniBatchIterator.val_edges,
+            self.miniBatchIterator.val_edges_false
+        )
 
     def _writeResultsToFileSystem(
         self,
