@@ -26,10 +26,6 @@ class DecagonLogger(BaseLogger):
     ) -> None:
         super().__init__(config)
 
-        self.numItersPerCheckpoint: int = int(
-            config.getSetting('NumIterationsPerCheckpoint')
-        )
-
         self.trainResultLogFile: file = self._getTrainResultFile(config)
         self.trainResultWriter: DictWriter = self._getDictWriter()
         self.trainResultWriter.writeheader()
@@ -90,9 +86,6 @@ class DecagonLogger(BaseLogger):
 
         return csv.DictWriter(self.trainResultLogFile, fieldnames=fieldnames)
 
-    @property
-    def _shouldCheckpoint(self):
-        return (self.numIterationsDone % self.numItersPerCheckpoint) == 0
 
     def log(
         self,
