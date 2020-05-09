@@ -1,4 +1,5 @@
 from .BaseLogger import BaseLogger
+from ..Checkpointer.TensorflowCheckpointer import TensorflowCheckpointer
 from ..Utils.Config import Config
 import tensorflow as tf
 import atexit
@@ -15,13 +16,11 @@ class DecagonLogger(BaseLogger):
     '''
     Note that this class is not thread-safe
     '''
-
     def __init__(
         self,
         session: tf.Session,
-        placeholders: PlaceholdersDict,
         trainable: DecagonTrainable,
-        checkpoint: tf.train.Checkpoint,
+        checkpointer: TensorflowCheckpointer,
         config: Config
     ) -> None:
         super().__init__(config)
@@ -30,16 +29,14 @@ class DecagonLogger(BaseLogger):
         self.trainResultWriter: DictWriter = self._getDictWriter()
         self.trainResultWriter.writeheader()
 
-        self.checkpointDir: str = config.getSetting('CheckpointDirectory')
+        self.checkpointer: TensorflowCheckpointer = checkpointer
 
         self.trainable: DecagonTrainable = trainable
         self.accuracyEvaluator: DecagonAccuracyEvaluator = DecagonAccuracyEvaluator(
             trainable.optimizer,
-            placeholders,
+            trainable.placeholders,
             config
         )
-
-        self.checkpoint: tf.train.Checkpoint = checkpoint
 
         atexit.register(_closeFile, f=self.trainResultLogFile)
 
@@ -86,8 +83,37 @@ class DecagonLogger(BaseLogger):
 
         return csv.DictWriter(self.trainResultLogFile, fieldnames=fieldnames)
 
+    @property
+    def shouldLog(self):
+        return super().shouldLog or self.checkpointer.shouldCheckpoint
+
+    def incrementIterations(self) -> None:
+        super().incrementIterations()
+        self.checkpointer.incrementIterations()
 
     def log(
+        self,
+        feedDict: FeedDict,
+        iterationResults: DecagonTrainingIterationResults
+    ) -> None:
+        if super().shouldLog:
+            self._logInternal(feedDict, iterationResults)
+
+        if self.checkpointer.shouldCheckpoint:
+            self.checkpointer.save()
+
+        return
+
+    # Force log to filesystem and stdout at epoch end
+    def logEpochEnd(
+        self,
+        feedDict: FeedDict,
+        iterationResults: DecagonTrainingIterationResults
+    ) -> None:
+        self._logInternal(feedDict, iterationResults)
+        self.checkpointer.save()
+
+    def _logInternal(
         self,
         feedDict: FeedDict,
         iterationResults: DecagonTrainingIterationResults
@@ -99,9 +125,6 @@ class DecagonLogger(BaseLogger):
 
         self.trainResultWriter.writerow(rowDict)
         print(iterString)
-
-        if self._shouldCheckpoint:
-            self._checkpointTrainable()
 
         return
 
@@ -155,7 +178,4 @@ class DecagonLogger(BaseLogger):
             accuracyScores.auprc,
             accuracyScores.apk,
         )
-
-    def _checkpointModel(self) -> None:
-        pass
 

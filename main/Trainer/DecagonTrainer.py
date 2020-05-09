@@ -11,34 +11,35 @@ class BaseDecagonTrainer(BaseTrainer):
         self.dataSetIterator = trainable.dataSetIterator
         self.placeholders = trainable.placeholders
 
-        self.logger = DecagonLogger(config)
+        self.session: tf.Session = tf.Session()
+
+        checkpointer = TensorflowCheckpointer(trainable, config)
+        self.logger = DecagonLogger(self.session, trainable, checkpointer, config)
+
         self.numEpochs: int = int(config.getSetting('NumEpochs'))
         self.dropoutRate: float = float(config.getSetting('dropout'))
 
     def train(self):
-        session = tf.Session()
-        session.run(tf.global_variables_initializer())
+        self.session.run(tf.global_variables_initializer())
 
+        feedDict = None
         for epochNum in range(self.numEpochs):
             self.dataSetIterator.shuffle()
             while not self.dataSetIterator.end():
-                iterResults = self._trainBatch(session)
+                feedDict = self._getNextFeedDict()
+                iterResults = self._trainBatch(session, feedDict)
 
                 self.logger.incrementIterations()
                 if self.logger.shouldLog:
-                    self.logger.log(iterResults)
+                    self.logger.log(iterResults, feedDict)
 
-            self.logger.logEpochEnd(iterResults)
-
-        self.logger.markTrainingEnd()
+            self.logger.logEpochEnd(iterResults, feedDict)
 
         return
 
-    def _trainBatch(self, session: tf.Session) -> DecagonTrainingIterationResults:
-        feedDict = self._getNextFeedDict()
-
+    def _trainBatch(self, feedDict: FeedDict) -> DecagonTrainingIterationResults:
         tic = time.time()
-        iterationLoss, iterationEdgeType = self._doIterationTraining(session, feedDict)
+        iterationLoss, iterationEdgeType = self._doIterationTraining(feedDict)
         toc = time.time()
 
         return DecagonTrainingIterationResults(
@@ -60,7 +61,7 @@ class BaseDecagonTrainer(BaseTrainer):
             self.placeholders
         )
 
-    def _doIterationTraining(self, session: tf.Session, feedDict: Dict) -> tuple:
+    def _doIterationTraining(self, feedDict: Dict) -> tuple:
         ITER_TRAIN_LOSS_IDX = 1
         ITER_EDGE_TYPE_IDX  = 2
 
@@ -70,7 +71,7 @@ class BaseDecagonTrainer(BaseTrainer):
             self.optimizer.batch_edge_type_idx,
         ]
 
-        outputs = session.run(operations, feedDict=feedDict)
+        outputs = self.session.run(operations, feedDict=feedDict)
 
         return outputs[ITER_TRAIN_LOSS_IDX], outputs[ITER_EDGE_TYPE_IDX]
 
