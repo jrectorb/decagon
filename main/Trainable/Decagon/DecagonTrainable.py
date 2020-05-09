@@ -1,10 +1,10 @@
 from ..Dtos.DataSet import DataSet
-from ..Dtos.Trainable import Trainable
+from ..Dtos.Trainable import TensorflowTrainable
 from ..Utils.Config import Config
 
 PlaceholdersDict = Dict[str, tf.placeholder]
 
-class DecagonTrainable(Trainable):
+class DecagonTrainable(TensorflowTrainable):
     def __init__(
         self,
         dataSetIterator,

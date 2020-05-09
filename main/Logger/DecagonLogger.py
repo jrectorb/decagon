@@ -19,9 +19,9 @@ class DecagonLogger(BaseLogger):
     def __init__(
         self,
         session: tf.Session,
-        optimizer: Optimizer,
         placeholders: PlaceholdersDict,
-        miniBatchIterator: EdgeMinibatchIterator,
+        trainable: DecagonTrainable,
+        checkpoint: tf.train.Checkpoint,
         config: Config
     ) -> None:
         super().__init__(config)
@@ -36,12 +36,14 @@ class DecagonLogger(BaseLogger):
 
         self.checkpointDir: str = config.getSetting('CheckpointDirectory')
 
-        self.miniBatchIterator: EdgeMinibatchIterator = miniBatchIterator
+        self.trainable: DecagonTrainable = trainable
         self.accuracyEvaluator: DecagonAccuracyEvaluator = DecagonAccuracyEvaluator(
-            optimizer,
+            trainable.optimizer,
             placeholders,
             config
         )
+
+        self.checkpoint: tf.train.Checkpoint = checkpoint
 
         atexit.register(_closeFile, f=self.trainResultLogFile)
 
@@ -106,16 +108,18 @@ class DecagonLogger(BaseLogger):
         print(iterString)
 
         if self._shouldCheckpoint:
-            self._checkpointModel()
+            self._checkpointTrainable()
 
         return
 
     def _computeAccuracyScores(self, feedDict: FeedDict) -> AccuracyScores:
+        iterator = self.trainable.dataSetIterator
+
         return self.accuracyEvaluator.evaluate(
             feedDict,
-            self.miniBatchIterator.idx2edge_type[minibatch.current_edge_type_idx],
-            self.miniBatchIterator.val_edges,
-            self.miniBatchIterator.val_edges_false
+            iterator.idx2edge_type[iterator.current_edge_type_idx],
+            iterator.val_edges,
+            iterator.val_edges_false
         )
 
     def _getCsvRowDict(
@@ -153,9 +157,12 @@ class DecagonLogger(BaseLogger):
             self.numIterationsDone,
             iterationResults.iterationLoss,
             iterationResults.iterationLatency,
-            iterationRresults.iterationEdgeType,
+            iterationResults.iterationEdgeType,
             accuracyScores.auroc,
             accuracyScores.auprc,
             accuracyScores.apk,
         )
+
+    def _checkpointModel(self) -> None:
+        pass
 
