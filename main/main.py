@@ -23,12 +23,24 @@ def _getTrainer(trainable: Trainable, config: Config) -> Type[Trainer]:
 
 def main() -> int:
     config: Config = _getConfig()
-    dataSet: DataSet = _getDataSet(config)
+    dataSet: Type[DataSet] = _getDataSet(config)
 
-    trainable: Trainable = _getTrainable(dataSet, config)
 
-    trainer: Type[BaseTrainer] = ObjectFactory.build(BaseTrainer, trainable, config)
-    trainer.train()
+    activeLearner: Type[BaseActiveLearner] = ObjectFactory.build(
+        BaseActiveLearner,
+        config
+    )
+
+    iterResults: Type[IterationResults] = None
+    while activeLearner.hasUpdate(dataSet, iterResults):
+        dataSet = activeLearner.getUpdate(dataSet, iterResults)
+
+        trainable: Type[Trainable] = _getTrainable(dataSet, config)
+        trainer: Type[BaseTrainer] = ObjectFactory.build(BaseTrainer, trainable, config)
+
+        trainer.train()
+
+        iterResults = trainable.getIterationResults()
 
     return 0
 

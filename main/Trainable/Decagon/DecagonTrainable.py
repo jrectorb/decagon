@@ -1,4 +1,5 @@
 from ..Dtos.DataSet import DataSet
+from ..Dtos.IterationResults import IterationResults
 from ..Dtos.Trainable import TensorflowTrainable
 from ..Utils.Config import Config
 
@@ -14,4 +15,7 @@ class DecagonTrainable(TensorflowTrainable):
     ) -> None:
         super().__init__(dataSetIterator, optimizer, model)
         self.placeholders: PlaceholdersDict = placeholders
+
+    def getIterationResults(self) -> IterationResults:
+        return IterationResults()
 
