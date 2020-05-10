@@ -2,6 +2,7 @@ from abc import ABCMeta, abstractmethod
 from ..Dtos.DataSet import DataSet
 from ..Dtos.IterationResults import IterationResults
 from ..Utils.Config import Config
+from ..Utils.BaseFactorizableClass import BaseFactorizableClass
 
 class BaseActiveLearner(BaseFactorizableClass, metaclass=ABCMeta):
     @abstractmethod

@@ -1,3 +1,6 @@
+from typing import List
+from .NodeIds import ProteinId, DrugId
+
 class NodeLists:
     def __init__(
         self,

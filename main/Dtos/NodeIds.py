@@ -1,3 +1,5 @@
+from typing import Type
+
 class BaseNodeId(int):
     '''
     Not meant to be instantiated, but rather used as a utility for
@@ -5,7 +7,7 @@ class BaseNodeId(int):
     '''
 
     @classmethod
-    def fromDecagonFormat(cls, preStr: str) -> Type[BaseNodeId]:
+    def fromDecagonFormat(cls, preStr: str) -> Type['BaseNodeId']:
         return cls(BaseNodeId._formatStr(preStr))
 
     @staticmethod

@@ -15,13 +15,13 @@ class Config:
 
     def _getConfFilename(self) -> str:
         if hasattr(self.argParserObj, 'config'):
-            return getattr(self.argParserObj, 'config')
+            return self.argParserObj.getKey('config')
         else:
-            return CONF_FILE_PATH
+            return Config.CONF_FILE_PATH
 
     def getSetting(self, settingName: str):
         if hasattr(self.argParserObj, settingName):
-            return getattr(self.argParserObj, settingName)
+            return self.argParserObj.getKey(settingName)
         elif settingName in self.confJson:
             return self.confJson[settingName]
         else:

@@ -1,6 +1,7 @@
 from abc import ABCMeta
-from typings import ClassVar, Dict
+from typing import ClassVar, Dict, Callable
 from .Config import Config
+from ..Dtos.Enums.DataSetType import DataSetType
 import inspect
 
 InitializersDictType = ClassVar[Dict[type, Dict[DataSetType, Callable]]]

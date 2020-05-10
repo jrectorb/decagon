@@ -1,7 +1,8 @@
 from abc import ABCMeta, abstractmethod
+from typing import Type
 from ..Dtos.DataSet import DataSet
 from ..Dtos.IterationResults import IterationResults
-from ..Dtos.Trainable import Trainable
+from ..Dtos.Trainable.Trainable import Trainable
 from ..Utils.BaseFactorizableClass import BaseFactorizableClass
 from ..Utils.Config import Config
 
@@ -11,7 +12,7 @@ class BaseTrainableBuilder(BaseFactorizableClass, metaclass=ABCMeta):
         pass
 
     @abstractmethod
-    def build(self) -> Trainable
+    def build(self) -> Type[Trainable]:
         pass
 
     @abstractmethod

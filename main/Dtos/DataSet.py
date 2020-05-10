@@ -1,3 +1,6 @@
+from .AdjacencyMatrices import AdjacencyMatrices
+from .NodeFeatures import NodeFeatures
+
 class DataSet:
     def __init__(
         self,

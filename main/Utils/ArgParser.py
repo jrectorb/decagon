@@ -1,4 +1,4 @@
-from typings import ClassVar
+from typing import ClassVar, Type
 from argparse import ArgumentParser, Namespace
 
 class ArgParser:
@@ -9,12 +9,14 @@ class ArgParser:
     '''
 
     def __init__(self) -> None:
-        self.parser: ArgumentParser = ArgumentParser(description=self._getDescription())
-        self.args: Namespace = None
+        self.parser: ArgumentParser = ArgumentParser(
+            description=ArgParser.DESCRIPTION_STR
+        )
 
+        self.args: Namespace = None
         self._addArgs()
 
-    def __getattr__(self, key):
+    def getKey(self, key: str) -> Type[object]:
         if hasattr(self.args, key):
             return getattr(self.args, key)
         else:
@@ -32,7 +34,9 @@ class ArgParser:
         return errStr
 
     def _addArgs(self) -> None:
-        self.parser.add_argument()
+        # TODO: Must add all arguments!
+        pass
+        #self.parser.add_argument()
 
     def parse(self) -> None:
         self.args = self.parser.parse_args()
