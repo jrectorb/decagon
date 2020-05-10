@@ -1,7 +1,7 @@
 class DataSetBuilder:
     @staticmethod
     def build(config: Config) -> DataSet:
-        dataSetType = DataSetTypee(config.getSetting('DataSetType'))
+        dataSetType = DataSetType(config.getSetting('DataSetType'))
 
         nodeLists = DataSetBuilder._getNodeLists(dataSetType, config)
 

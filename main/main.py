@@ -1,30 +1,23 @@
-from Utils import Config
+from ActiveLearner.BaseActiveLearner import BaseActiveLearner
+from DataSet.DataSetBuilder import DataSetBuilder
+from Trainable.BaseTrainable import BaseTrainable
+from Trainer.BaseTrainer import BaseTrainer
+from Dtos.DataSet import DataSet
+from Dtos.IterationResults import IterationResults
+from Utils.ArgParser import ArgParser
+from Utils.Config import Config
+from Utils.ObjectFactory import ObjectFactory
 
+from typing import Type
 import sys
 
 def _getConfig() -> Config:
     args = ArgParser().Parse()
     return Config(args)
 
-def _getNodeLists(conf: Config):
-    nodeListsBuilder = NodeListsBuilderFactory.buildBuilder(conf)
-    return nodeListsBuilder.build()
-
-def _getAdjacencyMatrices(nodeLists: NodeLists, conf: Config) -> AdjacencyMatrices:
-    adjacencyMatricesBuilder = AdjacencyMatricesBuilderFactory.buildBuilder(
-        nodeLists,
-        conf,
-    )
-
-    return adjacencyMatricesBuilder.build()
-
-def _getTrainer(trainable: Trainable, config: Config) -> Type[Trainer]:
-    return ObjectFactory.build(BaseTrainer, trainable, config)
-
 def main() -> int:
     config: Config = _getConfig()
-    dataSet: Type[DataSet] = _getDataSet(config)
-
+    dataSet: Type[DataSet] = DataSetBuilder.build(config)
 
     activeLearner: Type[BaseActiveLearner] = ObjectFactory.build(
         BaseActiveLearner,
@@ -35,7 +28,7 @@ def main() -> int:
     while activeLearner.hasUpdate(dataSet, iterResults):
         dataSet = activeLearner.getUpdate(dataSet, iterResults)
 
-        trainable: Type[Trainable] = _getTrainable(dataSet, config)
+        trainable: Type[BaseTrainable] = ObjectFactory.build(BaseTrainable, dataSet, config)
         trainer: Type[BaseTrainer] = ObjectFactory.build(BaseTrainer, trainable, config)
 
         trainer.train()
