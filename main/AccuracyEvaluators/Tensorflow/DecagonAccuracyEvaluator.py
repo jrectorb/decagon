@@ -1,10 +1,19 @@
+from typing import Dict, List, Tuple
+from ...Dtos.AccuracyScores import AccuracyScores
 from ...Dtos.TypeShortcuts import EdgeType, PlaceholdersDict
 import tensorflow as tf
 import numpy as np
 
 # A 2-tuple representing an indexing into an M x N matrix
-Coordinate = tuple
+Coordinate = Tuple[int, int]
 EdgeSamples = Dict[EdgeType, List[Coordinate]]
+
+# First two indices are the idx of the M x N matrix, third
+# index is the relation ID
+RelationCoordinate = Tuple[int, int, int]
+
+# Relation coordinate to flattened index of edges in graph
+EdgeTypeToIdx = Dict[RelationCoordinate, int]
 
 FROM_GRAPH_IDX = 0
 TO_GRAPH_IDX   = 1
@@ -13,7 +22,7 @@ ROW_SHAPE_IDX  = 0
 COL_SHAPE_IDX  = 1
 
 class LossElementsContainer:
-    def __init__(self, predictions: np.ndarray, labels: np.ndarraay):
+    def __init__(self, predictions: np.ndarray, labels: np.ndarray):
         self.predictions: np.ndarray = predictions
         self.labels: np.ndarray = labels
 

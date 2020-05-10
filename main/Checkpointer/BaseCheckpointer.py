@@ -1,4 +1,5 @@
 from abc import ABCMeta, abstractmethod
+from ..Utils.Config import Config
 
 class BaseCheckpointer(metaclass=ABCMeta):
     def __init__(self, config: Config) -> None:

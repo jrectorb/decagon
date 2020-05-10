@@ -1,4 +1,4 @@
-from typing import List, Dict, Type
+from typing import List, Dict, Tuple, Type
 from .NodeIds import DrugId, ProteinId
 
 import networkx as nx
@@ -8,7 +8,8 @@ import tensorflow as tf
 _nxGraphType = Type[nx.Graph]
 _sparseMtxType = Type[sp.spmatrix]
 
-EdgeList = List[tuple]
+EdgeType = Tuple[int, int]
+EdgeList = List[EdgeType]
 RelationIDToEdgeList = Dict[str, EdgeList]
 RelationIDToGraph = Dict[str, _nxGraphType]
 RelationIDToSparseMtx = Dict[str, _sparseMtxType]

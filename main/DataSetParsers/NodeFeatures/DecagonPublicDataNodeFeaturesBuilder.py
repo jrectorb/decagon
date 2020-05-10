@@ -1,7 +1,14 @@
-from ..Utils import Config
+from .BaseNodeFeaturesBuilder import BaseNodeFeaturesBuilder
+from ...Dtos.Enums.DataSetType import DataSetType
+from ...Dtos.NodeFeatures import NodeFeatures
+from ...Dtos.NodeIds import DrugId, SideEffectId
+from ...Dtos.NodeLists import NodeLists
+from ...Utils import Config
 from collections import defaultdict
+from typing import Dict, List, Iterable
 import csv
 import numpy as np
+import scipy.sparse as sp
 
 DrugFeaturesDict = Dict[DrugId, List[SideEffectId]]
 
@@ -62,7 +69,7 @@ class DecagonPublicDataNodeFeaturesBuilder(
 
     def _getSideEffectIdToIdx(
         self,
-        sideEffects: dict_values
+        sideEffects: Iterable[List[SideEffectId]]
     ) -> Dict[SideEffectId, int]:
         uniqueSideEffects = np.unique(np.concatenate(sideEffects))
         return {sideEffect: idx for idx, sideEffect in enumerate(uniqueSideEffects)}

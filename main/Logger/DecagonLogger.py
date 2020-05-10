@@ -1,6 +1,8 @@
 from .BaseLogger import BaseLogger
 from ..Checkpointer.TensorflowCheckpointer import TensorflowCheckpointer
+from ..Dtos.Enums.DataSetType import DataSetType
 from ..Utils.Config import Config
+import _io
 import tensorflow as tf
 import atexit
 import os
@@ -9,10 +11,10 @@ LOG_FILE_FORMAT = 'decagon_iteration_results_%d.csv'
 PERC_IDX = LOG_FILE_FORMAT.find('%')
 DOT_IDX  = LOG_FILE_FORMAT.find('.')
 
-def _closeFile(f: file) -> None:
+def _closeFile(f: _io.TextIOWrapper) -> None:
     f.close()
 
-class DecagonLogger(BaseLogger):
+class DecagonLogger(BaseLogger, dataSetType=None):
     '''
     Note that this class is not thread-safe
     '''
@@ -25,7 +27,7 @@ class DecagonLogger(BaseLogger):
     ) -> None:
         super().__init__(config)
 
-        self.trainResultLogFile: file = self._getTrainResultFile(config)
+        self.trainResultLogFile: _io.TextIOWrapper = self._getTrainResultFile(config)
         self.trainResultWriter: DictWriter = self._getDictWriter()
         self.trainResultWriter.writeheader()
 
@@ -178,4 +180,10 @@ class DecagonLogger(BaseLogger):
             accuracyScores.auprc,
             accuracyScores.apk,
         )
+
+class DecagonDummyDataLogger(BaseLogger, dataSetType=DataSetType.DecagonDummyData):
+    pass
+
+class DecagonPublicDataLogger(BaseLogger, dataSetType=DataSetType.DecagonPublicData):
+    pass
 

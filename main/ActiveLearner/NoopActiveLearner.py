@@ -3,7 +3,7 @@ from ..Dtos.DataSet import DataSet
 from ..Dtos.IterationResults import IterationResults
 from ..Utils.Config import Config
 
-class NoopActiveLearner(BaseActiveLearner):
+class NoopActiveLearner(BaseActiveLearner, dataSetType=None):
     def __init__(self, config: Config) -> None:
         # Increment this everytime hasUpdate is called
         self.numIters: int = 0

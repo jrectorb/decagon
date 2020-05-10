@@ -1,9 +1,13 @@
-from ..Dtos.NodeFeatures import NodeFeatures
+from .BaseNodeFeaturesBuilder import BaseNodeFeaturesBuilder
+from ...Dtos.Enums.DataSetType import DataSetType
+from ...Dtos.NodeFeatures import NodeFeatures
+from ...Dtos.NodeLists import NodeLists
+from ...Utils import Config
 import scipy.sparse as sp
 
 class DecagonPublicDataNodeFeaturesBuilder(
     BaseNodeFeaturesBuilder,
-    dataSetType = AdjacencyMatricesType.DecagonDummyData
+    dataSetType = DataSetType.DecagonDummyData
 ):
     def __init__(self, nodeLists: NodeLists, config: Config) -> None:
         self.numDrugs: int    = config.getInt('NumDrugs')

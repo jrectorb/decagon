@@ -1,17 +1,19 @@
+from .BaseNodeListsBuilder import BaseNodeListsBuilder
+from ...Dtos.Enums.DataSetType import DataSetType
+from ...Dtos.NodeLists import NodeLists
+from ...Dtos.TypeShortcuts import EdgeList, RelationIDToEdgeList, RelationIDToGraph, RelationIDToSparseMtx
+from ...Utils import Config
 from collections import defaultdict
-from .AdjacencyMatrices import AdjacencyMatrices
-from ..Dtos.TypeShortcuts import EdgeList, RelationIDToEdgeList, RelationIDToGraph, RelationIDToSparseMtx
-from ..Dtos.Enums import AdjacencyMatricesType
-from ..Utils import Config
+from typing import Iterator
 import networkx as nx
 import numpy as np
 import scipy.sparse as sp
 
-class DecagonPublicDataAdjacencyMatricesBuilder(
-    BaseAdjacencyMatricesBuilder,
-    adjacencyMatricesType = AdjacencyMatricesType.DecagonPublicData
+class DecagonPublicDataNodeListsBuilder(
+    BaseNodeListsBuilder,
+    dataSetType = DataSetType.DecagonPublicData
 ):
-    def __init__(self, nodeLists: NodeLists, config: Config) -> None:
+    def __init__(self, config: Config) -> None:
         self.drugDrugRelationGraph: nx.MultiGraph = nx.read_edgelist(
             config.getSetting('DecagonDrugDrugRelationsFilename'),
             delimiter=',',
@@ -24,7 +26,7 @@ class DecagonPublicDataAdjacencyMatricesBuilder(
             delimiter=','
         )
 
-    def build(self) -> AdjacencyMatrices:
+    def build(self) -> NodeLists:
         proteinNodeList = self._getOrderedProteinNodeList()
         drugNodeList    = self._getOrderedDrugNodeList()
 

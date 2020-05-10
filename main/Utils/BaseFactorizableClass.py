@@ -17,20 +17,22 @@ class BaseFactorizableClass(metaclass=ABCMeta):
 
     initializers: InitializersDictType = {}
 
-    def __init__subclass__(cls, dataSetType: DataSetType, **kwargs) -> None:
-        super().__init_subclass__(cls, **kwargs)
+    def __init_subclass__(cls, dataSetType: DataSetType, **kwargs) -> None:
+        super().__init_subclass__(**kwargs)
+
+        print(cls)
 
         if dataSetType is not None:
             lookupClass = cls._getBaseType()
-            if lookupClass not in initializers:
-                initializers[lookupClass] = {}
+            if lookupClass not in BaseFactorizableClass.initializers:
+                BaseFactorizableClass.initializers[lookupClass] = {}
 
-            initializers[lookupClass][dataSetType] = cls.__init__
+            BaseFactorizableClass.initializers[lookupClass][dataSetType] = cls.__init__
 
     @classmethod
     def _getBaseType(cls) -> type:
         clsAncestors = set(inspect.getmro(cls))
-        thisClassDirectDescendants = set(BaseFactorizableClass.__subclasses__)
+        thisClassDirectDescendants = set(BaseFactorizableClass.__subclasses__())
 
         intersection = clsAncestors & thisClassDirectDescendants
 

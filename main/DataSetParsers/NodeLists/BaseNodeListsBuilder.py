@@ -1,6 +1,9 @@
 from abc import ABCMeta, abstractmethod
+from ...Dtos.NodeLists import NodeLists
+from ...Utils.BaseFactorizableClass import BaseFactorizableClass
+from ...Utils.Config import Config
 
-class BaseNodeListsBuilder(BaseFactorizableClass, metaclass=ABCMeta):
+class BaseNodeListsBuilder(BaseFactorizableClass, dataSetType=None, metaclass=ABCMeta):
     @abstractmethod
     def __init__(self, config: Config) -> None:
         pass

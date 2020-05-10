@@ -1,5 +1,5 @@
 from .BaseCheckpointer import BaseCheckpointer
-from ..Trainable.Tensorflow.TensorflowTrainable import TensorflowTrainable
+from ..Dtos.Trainable.TensorflowTrainable import TensorflowTrainable
 from ..Utils.Config import Config
 
 class TensorflowCheckpointer(BaseCheckpointer):

@@ -1,11 +1,19 @@
-
+from .BaseAdjacencyMatricesBuilder import BaseAdjacencyMatricesBuilder
+from ...Dtos.AdjacencyMatrices import AdjacencyMatrices
+from ...Dtos.Enums.DataSetType import DataSetType
+from ...Dtos.NodeLists import NodeLists
+from ...Utils.Config import Config
+from typing import Dict, Type
+import networkx as nx
+import numpy as np
+import scipy.sparse as sp
 
 RelationIDToGraph = Dict[str, Type[nx.Graph]]
 RelationIDToSparseMtx = Dict[str, Type[sp.spmatrix]]
 
-class DecagonPublicDataAdjacencyMatricesBuilder(
+class DecagonDummyDataAdjacencyMatricesBuilder(
     BaseAdjacencyMatricesBuilder,
-    adjacencyMatricesType = AdjacencyMatricesType.DecagonDummyData
+    dataSetType = DataSetType.DecagonDummyData
 ):
     def __init__(self, nodeLists: NodeLists, config: Config) -> None:
         self.numDrugDrugRelationTypes: int = config.getInt('NumDrugDrugRelationTypes')
@@ -24,7 +32,7 @@ class DecagonPublicDataAdjacencyMatricesBuilder(
         )
 
     def _buildDrugProteinRelationMtx(self) -> sp.csr_matrix:
-        preMtx = 10 * .random.randn(self.numProteins, self.numDrugs)
+        preMtx = 10 * np.random.randn(self.numProteins, self.numDrugs)
         binaryMtx = (preMtx > 15).astype(int)
 
         return sp.csr_matrix(binaryMtx)

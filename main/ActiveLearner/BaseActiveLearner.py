@@ -4,7 +4,7 @@ from ..Dtos.IterationResults import IterationResults
 from ..Utils.Config import Config
 from ..Utils.BaseFactorizableClass import BaseFactorizableClass
 
-class BaseActiveLearner(BaseFactorizableClass, metaclass=ABCMeta):
+class BaseActiveLearner(BaseFactorizableClass, dataSetType=None, metaclass=ABCMeta):
     @abstractmethod
     def __init__(self, config: Config) -> None:
         pass

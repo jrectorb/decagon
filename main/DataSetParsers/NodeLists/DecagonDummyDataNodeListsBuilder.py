@@ -1,6 +1,9 @@
-from ..Dtos.NodeLists import NodeLists
+from .BaseNodeListsBuilder import BaseNodeListsBuilder
+from ...Dtos.Enums.DataSetType import DataSetType
+from ...Dtos.NodeLists import NodeLists
+from ...Utils import Config
 
-class DecagonPublicDataAdjacencyMatricesBuilder(
+class DecagonDummyDataNodeListsBuilder(
     BaseNodeListsBuilder,
     dataSetType = DataSetType.DecagonDummyData
 ):
@@ -8,7 +11,7 @@ class DecagonPublicDataAdjacencyMatricesBuilder(
         self.numProteins: int = config.getSetting('NumProteins')
         self.numDrugs: int    = config.getSetting('NumDrugs')
 
-    def build(self) -> AdjacencyMatrices:
+    def build(self) -> NodeLists:
         proteinNodeList = [ProteinId(i) for i in range(self.numProteins)]
         drugNodeList = [DrugId(i) for i in range(self.numProteins)]
 

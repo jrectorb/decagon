@@ -1,6 +1,5 @@
 from .Trainable import Trainable
-import tensorflow.python.eager.def_function as tfDefFxn
-import tensorflow.python.training.tracking.base as tfBase
+from tensorflow.python.training import checkpointable
 
 class TensorflowTrainable(Trainable):
     @property
@@ -17,5 +16,5 @@ class TensorflowTrainable(Trainable):
 
     @staticmethod
     def _isCheckpointable(obj: object):
-        return isinstance(obj, (tfBase.Trackable, tfDefFxn.Function))
+        return isinstance(obj, checkpointable.CheckpointableBase)
 
