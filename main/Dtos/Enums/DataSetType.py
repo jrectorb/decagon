@@ -1,6 +1,6 @@
-from ...Utils.ArgParseEnum import ArgParseEnum
+from enum import Enum
 
-class DataSetType(ArgParseEnum):
+class DataSetType(Enum):
     DecagonPublicData = 0
     DecagonDummyData  = 1
 

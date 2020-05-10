@@ -1,5 +1,6 @@
 from abc import ABCMeta, abstractmethod
-from typings import Dict, TypeVar
+from typing import Dict, TypeVar
+from ...Dtos.NodeFeatures import NodeFeatures
 
 class BaseDataSetBuilder(BaseFactorizableClass, metaclass=ABCMeta):
     @abstractmethod

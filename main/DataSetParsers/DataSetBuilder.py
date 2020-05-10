@@ -3,12 +3,16 @@ from ..Dtos.DataSet import DataSet
 from ..Dtos.NodeFeatures import NodeFeatures
 from ..Dtos.NodeLists import NodeLists
 from ..Dtos.Enums.DataSetType import DataSetType
+from .AdjacencyMatrices.BaseAdjacencyMatricesBuilder import BaseAdjacencyMatricesBuilder
+from .NodeFeatures.BaseNodeFeaturesBuilder import BaseNodeFeaturesBuilder
+from .NodeLists.BaseNodeListsBuilder import BaseNodeListsBuilder
 from ..Utils.Config import Config
+from ..Utils.ObjectFactory import ObjectFactory
 
 class DataSetBuilder:
     @staticmethod
     def build(config: Config) -> DataSet:
-        dataSetType = DataSetType(config.getSetting('DataSetType'))
+        dataSetType = DataSetType[config.getSetting('DataSetType')]
 
         nodeLists = DataSetBuilder._getNodeLists(dataSetType, config)
 
