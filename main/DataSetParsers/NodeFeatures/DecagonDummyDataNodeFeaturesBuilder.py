@@ -5,17 +5,17 @@ from ...Dtos.NodeLists import NodeLists
 from ...Utils import Config
 import scipy.sparse as sp
 
-class DecagonPublicDataNodeFeaturesBuilder(
+class DecagonDummyDataNodeFeaturesBuilder(
     BaseNodeFeaturesBuilder,
     dataSetType = DataSetType.DecagonDummyData
 ):
     def __init__(self, nodeLists: NodeLists, config: Config) -> None:
-        self.numDrugs: int    = config.getInt('NumDrugs')
-        self.numProteins: int = config.getInt('NumProteins')
+        self.numDrugs: int    = int(config.getSetting('NumDrugs'))
+        self.numProteins: int = int(config.getSetting('NumProteins'))
 
     def build(self) -> NodeFeatures:
         return NodeFeatures(
-            proteinNodeFeatures=sp.identity(self.numProteins).to_coo(),
-            drugNodeFeatures=sp.identity(self.numDrugs).to_coo(),
+            proteinNodeFeatures=sp.identity(self.numProteins).tocoo(),
+            drugNodeFeatures=sp.identity(self.numDrugs).tocoo(),
         )
 

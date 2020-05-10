@@ -1,5 +1,6 @@
 from .BaseActiveLearner import BaseActiveLearner
 from ..Dtos.DataSet import DataSet
+from ..Dtos.Enums.DataSetType import DataSetType
 from ..Dtos.IterationResults import IterationResults
 from ..Utils.Config import Config
 
@@ -23,4 +24,10 @@ class NoopActiveLearner(BaseActiveLearner, dataSetType=None):
         self.numIters += 1
 
         return dataSet
+
+class DummyNoopActiveLearner(NoopActiveLearner, dataSetType=DataSetType.DecagonDummyData):
+    pass
+
+class PublicNoopActiveLearner(NoopActiveLearner, dataSetType=DataSetType.DecagonDummyData):
+    pass
 

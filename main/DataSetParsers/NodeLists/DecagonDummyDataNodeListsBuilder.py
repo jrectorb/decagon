@@ -1,6 +1,7 @@
 from .BaseNodeListsBuilder import BaseNodeListsBuilder
 from ...Dtos.Enums.DataSetType import DataSetType
 from ...Dtos.NodeLists import NodeLists
+from ...Dtos.NodeIds import ProteinId, DrugId
 from ...Utils import Config
 
 class DecagonDummyDataNodeListsBuilder(

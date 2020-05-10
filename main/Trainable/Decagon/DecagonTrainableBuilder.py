@@ -1,6 +1,8 @@
+from .DecagonDataSet import DecagonDataSet
 from ..BaseTrainableBuilder import BaseTrainableBuilder
 from ...Dtos.DataSet import DataSet
 from ...Dtos.Enums.DataSetType import DataSetType
+from ...Dtos.IterationResults import IterationResults
 from ...Dtos.Trainable import Trainable
 from ...Utils.Config import Config
 from .decagon.deep.minibatch import EdgeMinibatchIterator
@@ -9,9 +11,9 @@ from .decagon.deep.optimizer import DecagonOptimizer
 
 import tensorflow as tf
 
-class DecagonTrainableBuilder(BaseTrainableBuilder, dataSetType=DataSetType.DecagonPublicData):
+class DecagonTrainableBuilder(BaseTrainableBuilder, dataSetType=None):
     def __init__(self, dataSet: DataSet, config: Config) -> None:
-        self.dataSet: DecagonDataSet = DecagonDataSet.fromDataSet(dataSet)
+        self.dataSet: DecagonDataSet = DecagonDataSet.fromDataSet(dataSet, config)
         self.config: Config = config
 
     def build(self) -> Trainable:
@@ -70,4 +72,13 @@ class DecagonTrainableBuilder(BaseTrainableBuilder, dataSetType=DataSetType.Deca
             )
 
         return optimizer
+
+    def getIterationResults(self) -> IterationResults:
+        return IterationResults()
+
+class DecagonDummyTrainableBuilder(DecagonTrainableBuilder, dataSetType=DataSetType.DecagonDummyData):
+    pass
+
+class DecagonPublicTrainableBuilder(DecagonTrainableBuilder, dataSetType=DataSetType.DecagonPublicData):
+    pass
 

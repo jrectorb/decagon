@@ -4,6 +4,7 @@ from ...Dtos.Enums.DataSetType import DataSetType
 from ...Dtos.NodeLists import NodeLists
 from ...Utils.Config import Config
 from typing import Dict, Type
+from itertools import combinations
 import networkx as nx
 import numpy as np
 import scipy.sparse as sp
@@ -16,9 +17,9 @@ class DecagonDummyDataAdjacencyMatricesBuilder(
     dataSetType = DataSetType.DecagonDummyData
 ):
     def __init__(self, nodeLists: NodeLists, config: Config) -> None:
-        self.numDrugDrugRelationTypes: int = config.getInt('NumDrugDrugRelationTypes')
-        self.numProteins: int              = len(nodeLists.proteinNodes)
-        self.numDrugs: int                 = len(nodeLists.drugNodes)
+        self.numDrugDrugRelationTypes: int = int(config.getSetting('NumDrugDrugRelationTypes'))
+        self.numProteins: int              = len(nodeLists.proteinNodeList)
+        self.numDrugs: int                 = len(nodeLists.drugNodeList)
 
     def build(self) -> AdjacencyMatrices:
         drugProteinRelationMtx: sp.csr_matrix = self._buildDrugProteinRelationMtx()
@@ -26,9 +27,9 @@ class DecagonDummyDataAdjacencyMatricesBuilder(
             self._buildDrugDrugRelationMtxs(drugProteinRelationMtx)
 
         return AdjacencyMatrices(
-            drugDrugRelationMtxs=self._buildDrugDrugRelationMtxs(),
-            drugProteinRelationMtx=self._buildDrugProteinRelationMtx(),
-            ppiMtx=self._buildPpiMtx(),
+            drugDrugRelationMtxs=drugDrugRelationMtxs,
+            drugProteinRelationMtx=drugProteinRelationMtx,
+            proteinProteinRelationMtx=self._buildPpiMtx(),
         )
 
     def _buildDrugProteinRelationMtx(self) -> sp.csr_matrix:

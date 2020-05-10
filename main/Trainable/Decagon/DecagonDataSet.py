@@ -3,6 +3,7 @@ from ...Dtos.AdjacencyMatrices import AdjacencyMatrices
 from ...Dtos.NodeFeatures import NodeFeatures
 from ...Dtos.DataSet import DataSet
 from ...Dtos.TypeShortcuts import PlaceholdersDict
+from collections import defaultdict
 from tensorflow.python.platform import flags as tfFlags
 from typing import Dict, List, Type
 import tensorflow as tf
@@ -185,6 +186,7 @@ class DecagonDataSet:
     def _augmentAdjMtxDictWithTranspose(
         adjMtxDict: EdgeTypeAdjacencyMatrixDict
     ) -> None:
+        tmp: EdgeTypeAdjacencyMatrixDict = {}
         for edgeType, mtxs in adjMtxDict.items():
             resEdgeType = None
             if edgeType == DecagonDataSet.PPI_TO_DRUG_EDGE_TYPE:
@@ -192,9 +194,11 @@ class DecagonDataSet:
             else:
                 resEdgeType = edgeType
 
-            adjMtxDict[resEdgeType].extend([
+            tmp[resEdgeType] = adjMtxDict[edgeType] + [
                 mtx.transpose(copy=True) for mtx in adjMtxDict[edgeType]
-            ])
+            ]
+
+        adjMtxDict = tmp
 
         return
 

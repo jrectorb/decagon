@@ -50,7 +50,7 @@ class DataSetBuilder:
             BaseAdjacencyMatricesBuilder,
             dataSetType=dataSetType,
             nodeLists=nodeLists,
-            conf=conf
+            config=config
         )
 
         return adjacencyMatricesBuilder.build()
@@ -65,8 +65,8 @@ class DataSetBuilder:
             BaseNodeFeaturesBuilder,
             dataSetType=dataSetType,
             nodeLists=nodeLists,
-            conf=conf
+            config=config
         )
 
-        return godeFeaturesBuilder.build()
+        return nodeFeaturesBuilder.build()
 

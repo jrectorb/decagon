@@ -3,6 +3,7 @@ from .DataSetParsers.DataSetBuilder import DataSetBuilder
 from .Trainable.BaseTrainableBuilder import BaseTrainableBuilder
 from .Trainer.BaseTrainer import BaseTrainer
 from .Dtos.DataSet import DataSet
+from .Dtos.Enums.DataSetType import DataSetType
 from .Dtos.IterationResults import IterationResults
 from .Dtos.Trainable.Trainable import Trainable
 from .Utils.ArgParser import ArgParser
@@ -19,7 +20,13 @@ def _getConfig() -> Config:
     return Config(argParser)
 
 def _getTrainable(dataSet: Type[DataSet], config: Config) -> Type[Trainable]:
-    trainableBuilder = ObjectFactory.build(BaseTrainableBuilder, dataSet, config)
+    trainableBuilder = ObjectFactory.build(
+        BaseTrainableBuilder,
+        DataSetType[config.getSetting('DataSetType')],
+        dataSet=dataSet,
+        config=config
+    )
+
     return trainableBuilder.build()
 
 def main() -> int:
@@ -28,7 +35,8 @@ def main() -> int:
 
     activeLearner: Type[BaseActiveLearner] = ObjectFactory.build(
         BaseActiveLearner,
-        config
+        dataSetType=DataSetType[config.getSetting('DataSetType')],
+        config=config
     )
 
     iterResults: Type[IterationResults] = None
