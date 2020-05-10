@@ -1,11 +1,14 @@
 from .BaseTrainer import BaseTrainer
 from ..Dtos.Decagon.DecagonTrainingIterationResults import DecagonTrainingIterationResults
-from ..Trainable import Trainable
+from ..Dtos.Enums.DataSetType import DataSetType
+from ..Dtos.Trainable import Trainable
+from ..Trainable.Decagon.DecagonTrainable import DecagonTrainable
 from ..Utils.Config import Config
+from typing import Dict
 import time
 import tensorflow as tf
 
-class BaseDecagonTrainer(BaseTrainer):
+class BaseDecagonTrainer(BaseTrainer, dataSetType=None):
     def __init__(self, trainable: DecagonTrainable, config: Config) -> None:
         self.optimizer = trainable.optimizer
         self.dataSetIterator = trainable.dataSetIterator

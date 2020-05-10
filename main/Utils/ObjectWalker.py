@@ -1,4 +1,4 @@
-from typing import List, Iterator
+from typing import List, Iterator, Type, Set, Iterable
 from ..Dtos.TraversedObject import TraversedObject
 
 MAX_DEPTH = 30
@@ -7,7 +7,7 @@ class ObjectWalker:
     @staticmethod
     def walk(
         obj: object,
-        filterFxn: function = lambda x: return True,
+        filterFxn: Type['function'] = lambda x: True,
         ignoreStrs: List[str] = []
     ) -> Iterator[TraversedObject]:
         yield from ObjectWalker._walkInternal(
@@ -22,7 +22,7 @@ class ObjectWalker:
     @staticmethod
     def _walkInternal(
         obj: object,
-        filterFxn: function,
+        filterFxn: Type['function'],
         ignoreStrs: Set[str],
         seenObjs: set,
         pathStr: str,
@@ -50,7 +50,7 @@ class ObjectWalker:
     @staticmethod
     def _walkList(
         listObj: List,
-        filterFxn: function,
+        filterFxn: Type['function'],
         ignoreStrs: Set[str],
         seenObjs: set,
         pathStr: str,
@@ -71,7 +71,7 @@ class ObjectWalker:
     @staticmethod
     def _walkDict(
         dictObj: List,
-        filterFxn: function,
+        filterFxn: Type['function'],
         ignoreStrs: Set[str],
         seenObjs: set,
         pathStr: str,
@@ -95,7 +95,7 @@ class ObjectWalker:
     @staticmethod
     def _walkDir(
         obj: object,
-        filterFxn: function,
+        filterFxn: Type['function'],
         ignoreStrs: Set[str],
         seenObjs: set,
         pathStr: str

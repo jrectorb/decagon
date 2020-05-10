@@ -1,5 +1,10 @@
+from ...Utils.Config import Config
+from ...Dtos.AdjacencyMatrices import AdjacencyMatrices
+from ...Dtos.NodeFeatures import NodeFeatures
+from ...Dtos.DataSet import DataSet
+from ...Dtos.TypeShortcuts import PlaceholdersDict
 from tensorflow.python.platform import flags as tfFlags
-from typing import Dict, List
+from typing import Dict, List, Type
 import tensorflow as tf
 import scipy.sparse as sp
 
@@ -67,8 +72,8 @@ class DecagonDataSet:
     def _getPlaceholdersDict(
         self,
         edgeTypeNumMatricesDict: EdgeTypeNumMatricesDict
-    ) -> PlaceholderDict:
-        result: PlaceholderDict = {}
+    ) -> PlaceholdersDict:
+        result: PlaceholdersDict = {}
 
         result['batch'] = tf.placeholder(tf.int32, name='batch')
         result['degrees'] = tf.placeholder(tf.int32)
@@ -132,7 +137,7 @@ class DecagonDataSet:
         return flags.FLAGS
 
     @staticmethod
-    def fromDataSet(dataSet: DataSet, config: Config) -> DecagonDataSet:
+    def fromDataSet(dataSet: DataSet, config: Config) -> Type['DecagonDataSet']:
         adjMtxDict = DecagonDataSet._getAdjMtxDict(
             dataSet.adjacencyMatrices,
             config

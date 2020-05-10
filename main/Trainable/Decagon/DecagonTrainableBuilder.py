@@ -1,11 +1,15 @@
-from ..Dtos.DataSet import DataSet
-from ..Dtos.Trainable import Trainable
 from ..BaseTrainableBuilder import BaseTrainableBuilder
-from ..Utils.Config import Config
+from ...Dtos.DataSet import DataSet
+from ...Dtos.Enums.DataSetType import DataSetType
+from ...Dtos.Trainable import Trainable
+from ...Utils.Config import Config
+from .decagon.deep.minibatch import EdgeMinibatchIterator
+from .decagon.deep.model import DecagonModel
+from .decagon.deep.optimizer import DecagonOptimizer
 
 import tensorflow as tf
 
-class DecagonTrainableBuilder(BaseTrainableBuilder):
+class DecagonTrainableBuilder(BaseTrainableBuilder, dataSetType=DataSetType.DecagonPublicData):
     def __init__(self, dataSet: DataSet, config: Config) -> None:
         self.dataSet: DecagonDataSet = DecagonDataSet.fromDataSet(dataSet)
         self.config: Config = config

@@ -4,7 +4,7 @@ from .Config import Config
 from ..Dtos.Enums.DataSetType import DataSetType
 import inspect
 
-InitializersDictType = ClassVar[Dict[type, Dict[DataSetType, Callable]]]
+ClassesDictType = ClassVar[Dict[type, Dict[DataSetType, type]]]
 
 class BaseFactorizableClass(metaclass=ABCMeta):
     '''
@@ -15,7 +15,7 @@ class BaseFactorizableClass(metaclass=ABCMeta):
     matrix factorization.
     '''
 
-    initializers: InitializersDictType = {}
+    classes: ClassesDictType = {}
 
     def __init_subclass__(cls, dataSetType: DataSetType, **kwargs) -> None:
         super().__init_subclass__(**kwargs)
@@ -24,10 +24,10 @@ class BaseFactorizableClass(metaclass=ABCMeta):
 
         if dataSetType is not None:
             lookupClass = cls._getBaseType()
-            if lookupClass not in BaseFactorizableClass.initializers:
-                BaseFactorizableClass.initializers[lookupClass] = {}
+            if lookupClass not in BaseFactorizableClass.classes:
+                BaseFactorizableClass.classes[lookupClass] = {}
 
-            BaseFactorizableClass.initializers[lookupClass][dataSetType] = cls.__init__
+            BaseFactorizableClass.classes[lookupClass][dataSetType] = cls
 
     @classmethod
     def _getBaseType(cls) -> type:

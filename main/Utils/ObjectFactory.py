@@ -2,8 +2,7 @@ from .BaseFactorizableClass import BaseFactorizableClass
 
 class ObjectFactory:
     @staticmethod
-    def build(baseCls, **kwargs):
-        initializer = BaseFactorizableClass.initializers[baseCls][dataSetType]
-
-        return initializer(**kwargs)
+    def build(baseCls, dataSetType, **kwargs):
+        cls = BaseFactorizableClass.classes[baseCls][dataSetType]
+        return cls(**kwargs)
 
