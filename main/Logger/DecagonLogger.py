@@ -1,10 +1,15 @@
 from .BaseLogger import BaseLogger
 from ..Checkpointer.TensorflowCheckpointer import TensorflowCheckpointer
+from ..Dtos.AccuracyScores import AccuracyScores
+from ..Dtos.Decagon.DecagonTrainingIterationResults import DecagonTrainingIterationResults
 from ..Dtos.Enums.DataSetType import DataSetType
+from ..Trainable.Decagon.DecagonTrainable import DecagonTrainable
 from ..Utils.Config import Config
+from typing import Dict
 import _io
 import tensorflow as tf
 import atexit
+import csv
 import os
 
 LOG_FILE_FORMAT = 'decagon_iteration_results_%d.csv'
@@ -42,7 +47,7 @@ class DecagonLogger(BaseLogger, dataSetType=None):
 
         atexit.register(_closeFile, f=self.trainResultLogFile)
 
-    def _getTrainResultFile(self, config: Config) -> file:
+    def _getTrainResultFile(self, config: Config) -> _io.TextIOWrapper:
         return open(self._getTrainResultFileName(config), 'w')
 
     def _getTrainResultFileName(self, config: Config) -> str:
@@ -95,7 +100,7 @@ class DecagonLogger(BaseLogger, dataSetType=None):
 
     def log(
         self,
-        feedDict: FeedDict,
+        feedDict: Dict,
         iterationResults: DecagonTrainingIterationResults
     ) -> None:
         if super().shouldLog:
@@ -109,7 +114,7 @@ class DecagonLogger(BaseLogger, dataSetType=None):
     # Force log to filesystem and stdout at epoch end
     def logEpochEnd(
         self,
-        feedDict: FeedDict,
+        feedDict: Dict,
         iterationResults: DecagonTrainingIterationResults
     ) -> None:
         self._logInternal(feedDict, iterationResults)
@@ -117,7 +122,7 @@ class DecagonLogger(BaseLogger, dataSetType=None):
 
     def _logInternal(
         self,
-        feedDict: FeedDict,
+        feedDict: Dict,
         iterationResults: DecagonTrainingIterationResults
     ) -> None:
         accuracyScores = self._computeAccuracyScores(feedDict)
@@ -130,7 +135,7 @@ class DecagonLogger(BaseLogger, dataSetType=None):
 
         return
 
-    def _computeAccuracyScores(self, feedDict: FeedDict) -> AccuracyScores:
+    def _computeAccuracyScores(self, feedDict: Dict) -> AccuracyScores:
         iterator = self.trainable.dataSetIterator
 
         return self.accuracyEvaluator.evaluate(

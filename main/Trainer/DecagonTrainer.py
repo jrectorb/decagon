@@ -37,7 +37,7 @@ class BaseDecagonTrainer(BaseTrainer):
 
         return
 
-    def _trainBatch(self, feedDict: FeedDict) -> DecagonTrainingIterationResults:
+    def _trainBatch(self, feedDict: Dict) -> DecagonTrainingIterationResults:
         tic = time.time()
         iterationLoss, iterationEdgeType = self._doIterationTraining(feedDict)
         toc = time.time()

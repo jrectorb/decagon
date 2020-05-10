@@ -1,3 +1,4 @@
+from tensorflow.python.platform import flags as tfFlags
 from typing import Dict, List
 import tensorflow as tf
 import scipy.sparse as sp
@@ -13,7 +14,7 @@ EdgeTypeNumMatricesDict      = Dict[EdgeType, int]
 FeaturesDict                 = Dict[InteractionSubGraphType, sp.coo_matrix]
 DegreesDict                  = Dict[InteractionSubGraphType, List[int]]
 PlaceholdersDict             = Dict[str, tf.placeholder]
-Flags                        = tf.python.platform.flags._FlagValuesWrapper
+Flags                        = tfFlags._FlagValuesWrapper
 
 class DecagonDataSet:
     PPI_GRAPH_IDX = 0
@@ -181,7 +182,7 @@ class DecagonDataSet:
     ) -> None:
         for edgeType, mtxs in adjMtxDict.items():
             resEdgeType = None
-            if edgeType == DecagonDataSet.PPI_TO_DRUG_EDGE_TYPE
+            if edgeType == DecagonDataSet.PPI_TO_DRUG_EDGE_TYPE:
                 resEdgeType = DecagonDataSet.DRUG_TO_PPI_EDGE_TYPE
             else:
                 resEdgeType = edgeType

@@ -1,7 +1,10 @@
-from ..Dtos.DataSet import DataSet
-from ..Dtos.IterationResults import IterationResults
-from ..Dtos.Trainable import TensorflowTrainable
-from ..Utils.Config import Config
+from typing import Dict
+from ...Dtos.DataSet import DataSet
+from ...Dtos.IterationResults import IterationResults
+from ...Dtos.Trainable.TensorflowTrainable import TensorflowTrainable
+from ...Dtos.TypeShortcuts import PlaceholdersDict
+from ...Utils.Config import Config
+import tensorflow as tf
 
 PlaceholdersDict = Dict[str, tf.placeholder]
 
