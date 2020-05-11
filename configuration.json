@@ -4,5 +4,22 @@
     "NumDrugs": 500,
     "NumDrugDrugRelationTypes": 5,
     "TrainWithTransposedAdjacencyMatrices": "True",
-    "DecagonDrugDrugRelationsFilename": "/Users/jarridr/repos/decagon/bio-decagon-combo.csv"
+    "DecagonDrugDrugRelationsFilename": "/Users/jarridr/repos/decagon/bio-decagon-combo.csv",
+    "PPIEdgeDecoder": "bilinear",
+    "ProteinToDrugEdgeDecoder": "bilinear",
+    "DrugProteinEdgeDecoder": "bilinear",
+    "DrugDrugEdgeDecoder": "dedicom",
+    "neg_sample_size": 1,
+    "learning_rate": 0.001,
+    "epochs": 50,
+    "hidden1": 64,
+    "hidden2": 32,
+    "weight_decay": 0,
+    "dropout": 0.1,
+    "max_margin": 0.1,
+    "batch_size": 512,
+    "bias": "True",
+    "ValidationSetProportion": 0.05,
+    "NumIterationsPerLog": 150,
+    "NumIterationsPerCheckpoint": 300
 }

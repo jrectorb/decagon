@@ -1,13 +1,15 @@
 from .DecagonDataSet import DecagonDataSet
+from .DecagonTrainable import DecagonTrainable
 from ..BaseTrainableBuilder import BaseTrainableBuilder
 from ...Dtos.DataSet import DataSet
 from ...Dtos.Enums.DataSetType import DataSetType
 from ...Dtos.IterationResults import IterationResults
-from ...Dtos.Trainable import Trainable
+from ...Dtos.Trainable.Trainable import Trainable
 from ...Utils.Config import Config
 from .decagon.deep.minibatch import EdgeMinibatchIterator
 from .decagon.deep.model import DecagonModel
 from .decagon.deep.optimizer import DecagonOptimizer
+from typing import Type
 
 import tensorflow as tf
 
@@ -16,7 +18,7 @@ class DecagonTrainableBuilder(BaseTrainableBuilder, dataSetType=None):
         self.dataSet: DecagonDataSet = DecagonDataSet.fromDataSet(dataSet, config)
         self.config: Config = config
 
-    def build(self) -> Trainable:
+    def build(self) -> Type[Trainable]:
         dataSetIterator = self._getDataSetIterator()
         model = self._getModel()
         optimizer = self._getOptimizer(model)
@@ -25,7 +27,7 @@ class DecagonTrainableBuilder(BaseTrainableBuilder, dataSetType=None):
             dataSetIterator,
             optimizer,
             model,
-            self.dataSet.placeholders
+            self.dataSet.placeholdersDict
         )
 
     def _getDataSetIterator(self) -> EdgeMinibatchIterator:
@@ -44,13 +46,13 @@ class DecagonTrainableBuilder(BaseTrainableBuilder, dataSetType=None):
         }
 
         subGraphToNumNonZeroValsDict = {
-            subGraphIdx: featureMtx.sum()
+            subGraphIdx: int(featureMtx.sum())
             for subGraphIdx, featureMtx in self.dataSet.featuresDict.items()
         }
 
         return DecagonModel(
-            self.dataSet.placeholders,
-            subGraphToFeaturersDimDict,
+            self.dataSet.placeholdersDict,
+            subGraphToFeaturesDimDict,
             subGraphToNumNonZeroValsDict,
             self.dataSet.edgeTypeNumMatricesDict,
             self.dataSet.edgeTypeDecoderDict,
@@ -61,12 +63,12 @@ class DecagonTrainableBuilder(BaseTrainableBuilder, dataSetType=None):
         with tf.name_scope('optimizer'):
             optimizer = DecagonOptimizer(
                 model.embeddings,
-                model.latent_interrs,
+                model.latent_inters,
                 model.latent_varies,
                 self.dataSet.degreesDict,
                 self.dataSet.edgeTypeNumMatricesDict,
                 self.dataSet.edgeTypeMatrixDimDict,
-                self.dataSet.placeholders,
+                self.dataSet.placeholdersDict,
                 self.dataSet.flags.batch_size,
                 self.dataSet.flags.max_margin
             )

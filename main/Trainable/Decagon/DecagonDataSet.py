@@ -5,9 +5,10 @@ from ...Dtos.DataSet import DataSet
 from ...Dtos.TypeShortcuts import PlaceholdersDict
 from collections import defaultdict
 from tensorflow.python.platform import flags as tfFlags
-from typing import Dict, List, Type
+from typing import Dict, List, Type, Iterable
 import tensorflow as tf
 import scipy.sparse as sp
+import numpy as np
 
 InteractionSubGraphType = int
 EdgeType                = tuple
@@ -53,20 +54,26 @@ class DecagonDataSet:
         self.degreesDict: DegreesDict = degreesDict
 
         self.edgeTypeDecoderDict: EdgeTypeDecoderDict = self._getEdgeTypeDecoderDict(config)
-        self.placeholdersDict: PlaceholdersDict = self._getPlaceholdersDict(config)
         self.flags: Flags = self._getFlags(config)
+        self.placeholdersDict: PlaceholdersDict = self._getPlaceholdersDict(
+            edgeTypeNumMatricesDict
+        )
 
     def _getEdgeTypeDecoderDict(self, config: Config) -> EdgeTypeDecoderDict:
         validDecoders = set(['innerproduct', 'distmult', 'bilinear', 'dedicom'])
 
         result: EdgeTypeDecoderDict = {}
 
-        result[PPI_GRAPH_EDGE_TYPE] = config.getSetting('PPIEdgeDecoder')
-        result[PPI_TO_DRUG_EDGE_TYPE] = config.getSetting('ProteinToDrugEdgeDecoder')
-        result[DRUG_DRUG_EDGE_TYPE] = config.getSetting('DrugDrugEdgeDecoder')
+        result[DecagonDataSet.PPI_GRAPH_EDGE_TYPE] = \
+            config.getSetting('PPIEdgeDecoder')
+        result[DecagonDataSet.PPI_TO_DRUG_EDGE_TYPE] = \
+            config.getSetting('ProteinToDrugEdgeDecoder')
+        result[DecagonDataSet.DRUG_DRUG_EDGE_TYPE] = \
+            config.getSetting('DrugDrugEdgeDecoder')
 
         if DecagonDataSet._shouldTranspose(config):
-            result[DRUG_TO_PPI_EDGE_TYPE] = config.getSetting('DrugProteinEdgeDecoder')
+            result[DecagonDataSet.DRUG_TO_PPI_EDGE_TYPE] = \
+                config.getSetting('DrugProteinEdgeDecoder')
 
         return result
 
@@ -98,7 +105,7 @@ class DecagonDataSet:
             name='batch_col_edge_type'
         )
 
-        for edgeType, numMtxsForEdgeType in edgeTypeNumMatricesDict.item():
+        for edgeType, numMtxsForEdgeType in edgeTypeNumMatricesDict.items():
             for i in range(numMtxsForEdgeType):
                 key = 'adj_mats_%d,%d,%d' % (edgeType[0], edgeType[1], i)
                 result[key] = tf.sparse_placeholder(tf.float32)
@@ -106,7 +113,7 @@ class DecagonDataSet:
         for x in [DecagonDataSet.PPI_GRAPH_IDX, DecagonDataSet.DRUG_DRUG_GRAPH_IDX]:
             result['feat_%d' % x] = tf.sparse_placeholder(tf.float32)
 
-        return placeholders
+        return result
 
     def _getFlags(self, config: Config) -> Flags:
         flags = tf.app.flags
@@ -168,7 +175,7 @@ class DecagonDataSet:
 
         result[DecagonDataSet.PPI_GRAPH_EDGE_TYPE] = [adjMtxs.proteinProteinRelationMtx]
         result[DecagonDataSet.PPI_TO_DRUG_EDGE_TYPE] = [adjMtxs.drugProteinRelationMtx]
-        result[DecagonDataSet.DRUG_DRUG_EDGE_TYPE] = adjMtxs.drugDrugRelationMtxs
+        result[DecagonDataSet.DRUG_DRUG_EDGE_TYPE] = list(adjMtxs.drugDrugRelationMtxs.values())
 
         # Decagon's original code uses transposed matrices to train as well
         # as original matrices.  Here we provide the option to do so too.
@@ -194,13 +201,22 @@ class DecagonDataSet:
             else:
                 resEdgeType = edgeType
 
-            tmp[resEdgeType] = adjMtxDict[edgeType] + [
-                mtx.transpose(copy=True) for mtx in adjMtxDict[edgeType]
-            ]
+            mtxs = DecagonDataSet._extractMtxs(adjMtxDict[edgeType])
+            tmp[resEdgeType] = mtxs + [mtx.transpose(copy=True) for mtx in mtxs]
 
         adjMtxDict = tmp
 
         return
+
+    # Do not type annotate the argument as it is either a dict or list
+    @staticmethod
+    def _extractMtxs(mtxContainer) -> List[sp.coo_matrix]:
+        if isinstance(mtxContainer, list):
+            return mtxContainer
+        elif isinstance(mtxContainer, dict):
+            return list(mtxContainer.values())
+        else:
+            raise TypeError('mtxContainer must be of type list or dict')
 
     @staticmethod
     def _getFeaturesDict(nodeFeatures: NodeFeatures) -> FeaturesDict:
@@ -214,7 +230,10 @@ class DecagonDataSet:
         adjMtxDict: EdgeTypeAdjacencyMatrixDict
     ) -> EdgeTypeMatrixDimensionsDict:
         return {
-            edgeType: [mtx.shape for mtx in mtxs]
+            edgeType: [
+                mtx.shape
+                for mtx in DecagonDataSet._extractMtxs(adjMtxDict[edgeType])
+            ]
             for edgeType, mtxs in adjMtxDict.items()
         }
 
@@ -231,14 +250,14 @@ class DecagonDataSet:
         def getDegrees(mtx: sp.coo_matrix) -> int:
             return np.array(mtx.sum(axis=0)).squeeze()
 
-        def getDegreesList(mtxs: List[sp.coo_matrix]) -> List[int]:
+        def getDegreesList(mtxs: Iterable[sp.coo_matrix]) -> List[int]:
             return [getDegrees(mtx) for mtx in mtxs]
 
         ppiMtxs = adjMtxDict[DecagonDataSet.PPI_GRAPH_EDGE_TYPE]
-        drugDrugMtxs = adjMtxDict[DecagonDataSet.DRUG_DRUG_GRAPH_EDGE_TYPE]
+        drugDrugMtxsDict = adjMtxDict[DecagonDataSet.DRUG_DRUG_EDGE_TYPE]
 
         return {
-            PPI_GRAPH_IDX: getDegreesList(ppiMtxs),
-            DRUG_DRUG_GRAPH_IDX: getDegreesList(drugDrugMtxs),
+            DecagonDataSet.PPI_GRAPH_IDX: getDegreesList(ppiMtxs),
+            DecagonDataSet.DRUG_DRUG_GRAPH_IDX: getDegreesList(drugDrugMtxsDict),
         }
 

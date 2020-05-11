@@ -1,4 +1,5 @@
 from .BaseTrainer import BaseTrainer
+from ..Checkpointer.TensorflowCheckpointer import TensorflowCheckpointer
 from ..Dtos.Decagon.DecagonTrainingIterationResults import DecagonTrainingIterationResults
 from ..Dtos.Enums.DataSetType import DataSetType
 from ..Dtos.Trainable import Trainable

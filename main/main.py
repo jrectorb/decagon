@@ -32,10 +32,11 @@ def _getTrainable(dataSet: Type[DataSet], config: Config) -> Type[Trainable]:
 def main() -> int:
     config: Config = _getConfig()
     dataSet: Type[DataSet] = DataSetBuilder.build(config)
+    dataSetType: DataSetType = DataSetType[config.getSetting('DataSetType')]
 
     activeLearner: Type[BaseActiveLearner] = ObjectFactory.build(
         BaseActiveLearner,
-        dataSetType=DataSetType[config.getSetting('DataSetType')],
+        dataSetType=dataSetType,
         config=config
     )
 
@@ -44,7 +45,12 @@ def main() -> int:
         dataSet = activeLearner.getUpdate(dataSet, iterResults)
 
         trainable: Type[Trainable] = _getTrainable(dataSet, config)
-        trainer: Type[BaseTrainer] = ObjectFactory.build(BaseTrainer, trainable, config)
+        trainer: Type[BaseTrainer] = ObjectFactory.build(
+            BaseTrainer,
+            dataSetType=dataSetType,
+            trainable=trainable,
+            config=config
+        )
 
         trainer.train()
 

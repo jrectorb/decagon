@@ -1,13 +1,14 @@
 from .BaseCheckpointer import BaseCheckpointer
 from ..Dtos.Trainable.TensorflowTrainable import TensorflowTrainable
 from ..Utils.Config import Config
+import tensorflow.contrib.eager as tfe
 
 class TensorflowCheckpointer(BaseCheckpointer):
     def __init__(self, trainable: TensorflowTrainable, config: Config):
         super().__init__(config)
 
         self.checkpoint: tf.train.Checkpoint = \
-            tf.train.Checkpoint(trainable.checkpointDict)
+            tfe.Checkpoint(trainable.checkpointDict)
 
         ckptDir = config.getSetting('CheckpointDirectory')
         ckptName = self._getCkptName(ckptDir, config)

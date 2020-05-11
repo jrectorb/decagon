@@ -52,7 +52,7 @@ class DecagonDummyDataAdjacencyMatricesBuilder(
                 if tmp[d1, d2] == i + 4:
                     mat[d1, d2] = mat[d2, d1] = 1.
 
-            result[str(i)] = mat
+            result[str(i)] = sp.csr_matrix(mat)
 
         return result
 

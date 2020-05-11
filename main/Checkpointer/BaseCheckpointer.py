@@ -3,8 +3,10 @@ from ..Utils.Config import Config
 
 class BaseCheckpointer(metaclass=ABCMeta):
     def __init__(self, config: Config) -> None:
-        self.numIterationsPerLog: int = int(config.getSetting('NumIterationsPerLog'))
         self.numIterationsDone: int = 0
+        self.numIterationsPerLog: int = int(
+            config.getSetting('NumIterationsPerCheckpoint')
+        )
 
     def incrementIterations(self):
         self.numIterationsDone += 1
