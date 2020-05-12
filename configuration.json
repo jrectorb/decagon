@@ -1,8 +1,8 @@
 {
     "DataSetType": "DecagonDummyData",
-    "NumProteins": 400,
-    "NumDrugs": 500,
-    "NumDrugDrugRelationTypes": 5,
+    "NumProteins": 200,
+    "NumDrugs": 250,
+    "NumDrugDrugRelationTypes": 3,
     "TrainWithTransposedAdjacencyMatrices": "True",
     "DecagonDrugDrugRelationsFilename": "/Users/jarridr/repos/decagon/bio-decagon-combo.csv",
     "PPIEdgeDecoder": "bilinear",
@@ -22,9 +22,10 @@
     "ValidationSetProportion": 0.05,
     "NumIterationsPerLog": 150,
     "NumIterationsPerCheckpoint": 300,
-    "CheckpointDirectory": "/Users/jarridr/repos/decagon/ckpts",
-    "TrainIterationResultDir": "/Users/jarridr/repos/decagon/results",
+    "CheckpointDirectory": "/Users/jarridr/repos/decagon/ckpts/",
+    "TrainIterationResultDir": "/Users/jarridr/repos/decagon/results/",
     "MaxCheckpointsToKeep": 3,
     "CustomCheckpointName": "dummy_data",
-    "NumEpochs": 50
+    "NumEpochs": 50,
+    "ApkRank": 50
 }

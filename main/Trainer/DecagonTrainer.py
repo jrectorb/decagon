@@ -8,6 +8,7 @@ from ..Trainable.Decagon.DecagonTrainable import DecagonTrainable
 from ..Utils.Config import Config
 from typing import Dict
 import time
+import multiprocessing
 import tensorflow as tf
 
 class BaseDecagonTrainer(BaseTrainer, dataSetType=None):
@@ -16,13 +17,23 @@ class BaseDecagonTrainer(BaseTrainer, dataSetType=None):
         self.dataSetIterator = trainable.dataSetIterator
         self.placeholders = trainable.placeholders
 
-        self.session: tf.Session = tf.Session()
+        tfConf = self._getTfConf()
+        self.session: tf.Session = tf.Session(config=tfConf)
 
-        checkpointer = TensorflowCheckpointer(trainable, config)
+        checkpointer = TensorflowCheckpointer(trainable, self.session, config)
         self.logger = DecagonLogger(self.session, trainable, checkpointer, config)
 
         self.numEpochs: int = int(config.getSetting('NumEpochs'))
         self.dropoutRate: float = float(config.getSetting('dropout'))
+
+    def _getTfConf(self) -> tf.ConfigProto:
+        numThreads = multiprocessing.cpu_count()
+
+        result = tf.ConfigProto()
+        result.intra_op_parallelism_threads = numThreads
+        result.inter_op_parallelism_threads = numThreads
+
+        return result
 
     def train(self):
         self.session.run(tf.global_variables_initializer())
@@ -36,9 +47,9 @@ class BaseDecagonTrainer(BaseTrainer, dataSetType=None):
 
                 self.logger.incrementIterations()
                 if self.logger.shouldLog:
-                    self.logger.log(iterResults, feedDict)
+                    self.logger.log(feedDict, iterResults)
 
-            self.logger.logEpochEnd(iterResults, feedDict)
+            self.logger.logEpochEnd(feedDict, iterResults)
 
         return
 

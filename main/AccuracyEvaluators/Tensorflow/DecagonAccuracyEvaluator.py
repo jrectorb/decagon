@@ -1,6 +1,9 @@
-from typing import Dict, List, Tuple
 from ...Dtos.AccuracyScores import AccuracyScores
 from ...Dtos.TypeShortcuts import EdgeType, PlaceholdersDict
+from ...Utils.Config import Config
+from ...Utils import MathUtils
+from typing import Dict, List, Tuple
+from sklearn import metrics
 import tensorflow as tf
 import numpy as np
 
@@ -32,12 +35,14 @@ class DecagonAccuracyEvaluator:
         session: tf.Session,
         placeholdersDict: PlaceholdersDict,
         predictionsTensor: tf.Tensor,
-        edgeTypeToIdx: EdgeTypeToIdx
+        edgeTypeToIdx: EdgeTypeToIdx,
+        config: Config
     ) -> None:
         self.session: tf.Session = session
         self.placeholdersDict: PlaceholdersDict = placeholdersDict
         self.predictionsTensor: tf.Tensor  = predictionsTensor
         self.edgeTypeToIdx : EdgeTypeToIdx = edgeTypeToIdx
+        self.apkRank = int(config.getSetting('ApkRank'))
 
     def evaluate(
         self,
@@ -48,12 +53,16 @@ class DecagonAccuracyEvaluator:
     ) -> AccuracyScores:
         self._updateFeedDictForEval(feedDict, edgeType)
 
-        lossElements: LossElementsContainer = \
-            self._computePredictions(feedDict, edgeType)
+        lossElements: LossElementsContainer = self._computePredictions(
+            feedDict,
+            edgeType,
+            positiveEdgeSamples,
+            negativeEdgeSamples
+        )
 
         auroc = metrics.roc_auc_score(lossElements.labels, lossElements.predictions)
         auprc = metrics.average_precision_score(lossElements.labels, lossElements.predictions)
-        apk   = self._computeApk(lossElements)
+        apk   = 0 #self._computeApk(lossElements)
 
         return AccuracyScores(auroc, auprc, apk)
 
@@ -125,12 +134,15 @@ class DecagonAccuracyEvaluator:
         return (twoDimSampleIndexes[:, 0] * numCols) + twoDimSampleIndexes[:, 1]
 
     def _updateFeedDictForEval(self, feedDict: Dict, edgeType: EdgeType) -> None:
-        feedDict[placeholders['dropout']] = 0
-        feedDict[placeholders['batch_edge_type_idx']] = self.edgeTypeToIdx[edgeType]
-        feedDict[placeholders['batch_row_edge_type']] = edgeType[FROM_GRAPH_IDX]
-        feedDict[placeholders['batch_col_edge_type']] = edgeType[TO_GRAPH_IDX]
+        feedDict[self.placeholdersDict['dropout']] = 0
+        feedDict[self.placeholdersDict['batch_edge_type_idx']] = self.edgeTypeToIdx[edgeType]
+        feedDict[self.placeholdersDict['batch_row_edge_type']] = edgeType[FROM_GRAPH_IDX]
+        feedDict[self.placeholdersDict['batch_col_edge_type']] = edgeType[TO_GRAPH_IDX]
 
         return
+
+    def _computeApk(self, lossElements: LossElementsContainer) -> float:
+        pass
 
     @staticmethod
     def _toLinearIdxs(twoDimIdxs, predTensorDim) -> np.ndarray:

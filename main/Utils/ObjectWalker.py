@@ -34,7 +34,6 @@ class ObjectWalker:
             seenObjs.add(id(obj))
 
         if filterFxn(obj):
-            print(pathStr)
             yield TraversedObject(pathStr, obj)
             return
 
@@ -123,7 +122,6 @@ class ObjectWalker:
         pathStr: str,
         depth: int
     ) -> Iterator[TraversedObject]:
-        print(obj)
         for attrName in dir(obj):
             if attrName in ignoreStrs or attrName[:2] == '__':
                 continue

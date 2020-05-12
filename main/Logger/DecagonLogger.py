@@ -44,8 +44,9 @@ class DecagonLogger(BaseLogger, dataSetType=None):
         self.accuracyEvaluator: DecagonAccuracyEvaluator = DecagonAccuracyEvaluator(
             session,
             trainable.placeholders,
-            trainable.optimizer.opt_op,
-            trainable.dataSetIterator.edge_type2idx
+            trainable.optimizer.predictions,
+            trainable.dataSetIterator.edge_type2idx,
+            config
         )
 
         atexit.register(_closeFile, f=self.trainResultLogFile)
@@ -135,7 +136,7 @@ class DecagonLogger(BaseLogger, dataSetType=None):
         iterRowDict = self._getCsvRowDict(iterationResults, accuracyScores)
         iterString  = self._getString(iterationResults, accuracyScores)
 
-        self.trainResultWriter.writerow(rowDict)
+        self.trainResultWriter.writerow(iterRowDict)
         print(iterString)
 
         return
@@ -159,7 +160,7 @@ class DecagonLogger(BaseLogger, dataSetType=None):
             'IterationNum': self.numIterationsDone,
             'Loss': iterationResults.iterationLoss,
             'Latency': iterationResults.iterationLatency,
-            'EdgeType': iterationRresults.iterationEdgeType,
+            'EdgeType': iterationResults.iterationEdgeType,
             'AUROC': accuracyScores.auroc,
             'AUPRC': accuracyScores.auprc,
             'APK': accuracyScores.apk,
