@@ -40,14 +40,17 @@ class DecagonTrainableBuilder(BaseTrainableBuilder, dataSetType=None):
         )
 
     def _getModel(self) -> DecagonModel:
+        FEATURE_TPL_MTX_IDX   = 1
+        FEATURE_TPL_SHAPE_IDX = 2
+
         subGraphToFeaturesDimDict = {
-            subGraphIdx: featureMtx.shape[1]
-            for subGraphIdx, featureMtx in self.dataSet.featuresDict.items()
+            subGraphIdx: featureTpl[FEATURE_TPL_SHAPE_IDX][1]
+            for subGraphIdx, featureTpl in self.dataSet.featuresDict.items()
         }
 
         subGraphToNumNonZeroValsDict = {
-            subGraphIdx: int(featureMtx.sum())
-            for subGraphIdx, featureMtx in self.dataSet.featuresDict.items()
+            subGraphIdx: int(featureTpl[FEATURE_TPL_MTX_IDX].sum())
+            for subGraphIdx, featureTpl in self.dataSet.featuresDict.items()
         }
 
         return DecagonModel(
@@ -69,8 +72,9 @@ class DecagonTrainableBuilder(BaseTrainableBuilder, dataSetType=None):
                 self.dataSet.edgeTypeNumMatricesDict,
                 self.dataSet.edgeTypeMatrixDimDict,
                 self.dataSet.placeholdersDict,
-                self.dataSet.flags.batch_size,
-                self.dataSet.flags.max_margin
+                margin=self.dataSet.flags.max_margin,
+                neg_sample_weights=self.dataSet.flags.neg_sample_size,
+                batch_size=self.dataSet.flags.batch_size
             )
 
         return optimizer

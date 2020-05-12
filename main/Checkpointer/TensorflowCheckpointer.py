@@ -8,38 +8,39 @@ class TensorflowCheckpointer(BaseCheckpointer):
         super().__init__(config)
 
         self.checkpoint: tf.train.Checkpoint = \
-            tfe.Checkpoint(trainable.checkpointDict)
+            tfe.Checkpoint(**trainable.checkpointDict)
 
-        ckptDir = config.getSetting('CheckpointDirectory')
-        ckptName = self._getCkptName(ckptDir, config)
-        maxToKeep = int(config.getSetting('MaxCheckpointsToKeep'))
+        self.ckptDir: str = config.getSetting('CheckpointDirectory')
 
-        self.checkpointManager: tf.train.CheckpointManager = \
-            tf.train.CheckpointManager(
-                checkpoint=self.checkpoint,
-                directory=ckptDir,
-                max_to_keep=maxToKeep,
-                checkpoint_name=ckptName,
-            )
+        # TODO: Implement only keeping k checkpoints
+        #self.maxToKeep: int = int(config.getSetting('MaxCheckpointsToKeep'))
 
-    def _getCkptName(self, ckptDir: str, config: Config) -> str:
         customName = config.getSetting('CustomCheckpointName')
-
-        ckptBaseName = 'ckpt'
+        self.ckptBaseName: str = 'ckpt'
         if customName:
-            ckptBaseName = ckptBaseName + "_%s" % customName
+            self.ckptBaseName = self.ckptBaseName + "_%s" % customName
 
+    def _getCkptName(self, isNew: bool) -> str:
+        thisFileIdx = self._getCurrFnameIdx()
+        if thisFileIdx == -1:
+            thisFileIdx = 0
+        else:
+            # If not the newest file, increment the ckpt idx
+            thisFileIdx += 1
+
+        return self.ckptBaseName + '_%d' % thisFileIdx
+
+    def _getCurrFnameIdx(self) -> int:
         existingIndices = [
             self._getFnameIdx(f)
             for f in os.listdir(baseDir)
             if self._isValidFname(baseDir, f)
         ]
 
-        thisFileIdx = 0
         if len(existingIndices) > 0:
             thisFileIdx = max(thisFileIdx)
-
-        return ckptBaseName + '_%d' % thisFileIdx
+        else:
+            return -1
 
     def _getFnameIdx(self, fname: str, matchStr: str) -> int:
         fnameFirstPortion = fname.split('.')[0]
@@ -59,8 +60,12 @@ class TensorflowCheckpointer(BaseCheckpointer):
         return isFile and isGoodPrefix
 
     def save(self):
-        self.checkpointManager.save()
+        newFname = self._getCkptName(isNew=True)
+        self.checkpointManager.save(newFname)
 
     def restore(self):
-        self.checkpointManager.restore_or_initializer()
+        someCkptExists = self._getCurrFnameIdx() != -1
+        currFname = self._getCkptName(isNew=False)
+
+        self.checkpoint.restore(self.ckptDir + currFname)
 

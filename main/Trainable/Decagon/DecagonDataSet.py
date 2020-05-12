@@ -1,3 +1,4 @@
+from .decagon.utility import preprocessing
 from ...Utils.Config import Config
 from ...Dtos.AdjacencyMatrices import AdjacencyMatrices
 from ...Dtos.NodeFeatures import NodeFeatures
@@ -5,7 +6,7 @@ from ...Dtos.DataSet import DataSet
 from ...Dtos.TypeShortcuts import PlaceholdersDict
 from collections import defaultdict
 from tensorflow.python.platform import flags as tfFlags
-from typing import Dict, List, Type, Iterable
+from typing import Dict, List, Type, Iterable, Tuple
 import tensorflow as tf
 import scipy.sparse as sp
 import numpy as np
@@ -14,11 +15,13 @@ InteractionSubGraphType = int
 EdgeType                = tuple
 StrDecoderSpecifier     = str
 
+
 EdgeTypeMatrixDimensionsDict = Dict[EdgeType, List[tuple]]
 EdgeTypeAdjacencyMatrixDict  = Dict[EdgeType, List[sp.coo_matrix]]
 EdgeTypeDecoderDict          = Dict[EdgeType, StrDecoderSpecifier]
 EdgeTypeNumMatricesDict      = Dict[EdgeType, int]
-FeaturesDict                 = Dict[InteractionSubGraphType, sp.coo_matrix]
+FeaturesTuple                = Tuple[np.ndarray, sp.coo_matrix, Tuple[int, int]]
+FeaturesDict                 = Dict[InteractionSubGraphType, FeaturesTuple]
 DegreesDict                  = Dict[InteractionSubGraphType, List[int]]
 PlaceholdersDict             = Dict[str, tf.placeholder]
 Flags                        = tfFlags._FlagValuesWrapper
@@ -47,6 +50,7 @@ class DecagonDataSet:
         degreesDict: DegreesDict,
         config: Config
     ) -> None:
+        print({e: [x.shape for x in y] for e,y in adjacencyMatrixDict.items()})
         self.adjacencyMatrixDict: EdgeTypeAdjacencyMatrixDict = adjacencyMatrixDict
         self.edgeTypeMatrixDimDict: EdgeTypeMatrixDimensionsDict = edgeTypeMatrixDimDict
         self.edgeTypeNumMatricesDict: EdgeTypeNumMatricesDict = edgeTypeNumMatricesDict
@@ -131,7 +135,7 @@ class DecagonDataSet:
 
             defFxn(key, typeToDef(config.getSetting(key)), desc)
 
-        defVal('neg_sample_size', 'Negative sample size.', int)
+        defVal('neg_sample_size', 'Negative sample size.', float)
         defVal('learning_rate', 'Initial learning rate.', float)
         defVal('epochs', 'Number of epochs to train.', int)
         defVal('hidden1', 'Number of units in hidden layer 1.', int)
@@ -195,16 +199,18 @@ class DecagonDataSet:
     ) -> None:
         tmp: EdgeTypeAdjacencyMatrixDict = {}
         for edgeType, mtxs in adjMtxDict.items():
-            resEdgeType = None
-            if edgeType == DecagonDataSet.PPI_TO_DRUG_EDGE_TYPE:
-                resEdgeType = DecagonDataSet.DRUG_TO_PPI_EDGE_TYPE
-            else:
-                resEdgeType = edgeType
-
             mtxs = DecagonDataSet._extractMtxs(adjMtxDict[edgeType])
-            tmp[resEdgeType] = mtxs + [mtx.transpose(copy=True) for mtx in mtxs]
+            tMtxs = [mtx.transpose(copy=True) for mtx in mtxs]
 
-        adjMtxDict = tmp
+            if edgeType == DecagonDataSet.PPI_TO_DRUG_EDGE_TYPE:
+                tmp[edgeType] = mtxs
+                tmp[DecagonDataSet.DRUG_TO_PPI_EDGE_TYPE] = tMtxs
+
+            else:
+                tmp[edgeType] = mtxs + tMtxs
+
+        for edgeType, mtxs in tmp.items():
+            adjMtxDict[edgeType] = mtxs
 
         return
 
@@ -220,9 +226,17 @@ class DecagonDataSet:
 
     @staticmethod
     def _getFeaturesDict(nodeFeatures: NodeFeatures) -> FeaturesDict:
+        processedProteinFeatures = preprocessing.sparse_to_tuple(
+            nodeFeatures.proteinNodeFeatures
+        )
+
+        processedDrugFeatures = preprocessing.sparse_to_tuple(
+            nodeFeatures.drugNodeFeatures
+        )
+
         return {
-            DecagonDataSet.PPI_GRAPH_IDX: nodeFeatures.proteinNodeFeatures,
-            DecagonDataSet.DRUG_DRUG_GRAPH_IDX: nodeFeatures.drugNodeFeatures,
+            DecagonDataSet.PPI_GRAPH_IDX: processedProteinFeatures,
+            DecagonDataSet.DRUG_DRUG_GRAPH_IDX: processedDrugFeatures,
         }
 
     @staticmethod

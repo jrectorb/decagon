@@ -3,6 +3,7 @@ from ..Checkpointer.TensorflowCheckpointer import TensorflowCheckpointer
 from ..Dtos.Decagon.DecagonTrainingIterationResults import DecagonTrainingIterationResults
 from ..Dtos.Enums.DataSetType import DataSetType
 from ..Dtos.Trainable import Trainable
+from ..Logger.DecagonLogger import DecagonLogger
 from ..Trainable.Decagon.DecagonTrainable import DecagonTrainable
 from ..Utils.Config import Config
 from typing import Dict
@@ -31,7 +32,7 @@ class BaseDecagonTrainer(BaseTrainer, dataSetType=None):
             self.dataSetIterator.shuffle()
             while not self.dataSetIterator.end():
                 feedDict = self._getNextFeedDict()
-                iterResults = self._trainBatch(session, feedDict)
+                iterResults = self._trainBatch(feedDict)
 
                 self.logger.incrementIterations()
                 if self.logger.shouldLog:
@@ -75,7 +76,7 @@ class BaseDecagonTrainer(BaseTrainer, dataSetType=None):
             self.optimizer.batch_edge_type_idx,
         ]
 
-        outputs = self.session.run(operations, feedDict=feedDict)
+        outputs = self.session.run(operations, feed_dict=feedDict)
 
         return outputs[ITER_TRAIN_LOSS_IDX], outputs[ITER_EDGE_TYPE_IDX]
 

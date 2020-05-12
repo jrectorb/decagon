@@ -4,7 +4,7 @@ from ..Utils.Config import Config
 class BaseCheckpointer(metaclass=ABCMeta):
     def __init__(self, config: Config) -> None:
         self.numIterationsDone: int = 0
-        self.numIterationsPerLog: int = int(
+        self.numIterationsPerCheckpoint: int = int(
             config.getSetting('NumIterationsPerCheckpoint')
         )
 
@@ -13,7 +13,7 @@ class BaseCheckpointer(metaclass=ABCMeta):
 
     @property
     def shouldCheckpoint(self):
-        return (self.numIterationsDone % self.numItersPerCheckpoint) == 0
+        return (self.numIterationsDone % self.numIterationsPerCheckpoint) == 0
 
     @abstractmethod
     def save(self):

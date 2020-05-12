@@ -15,7 +15,3 @@ class BaseTrainableBuilder(BaseFactorizableClass, dataSetType=None, metaclass=AB
     def build(self) -> Type[Trainable]:
         pass
 
-    @abstractmethod
-    def getIterationResults(self) -> IterationResults:
-        pass
-

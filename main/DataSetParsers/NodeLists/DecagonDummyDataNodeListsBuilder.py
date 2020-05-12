@@ -14,7 +14,7 @@ class DecagonDummyDataNodeListsBuilder(
 
     def build(self) -> NodeLists:
         proteinNodeList = [ProteinId(i) for i in range(self.numProteins)]
-        drugNodeList = [DrugId(i) for i in range(self.numProteins)]
+        drugNodeList = [DrugId(i) for i in range(self.numDrugs)]
 
         return NodeLists(proteinNodeList, drugNodeList)
 

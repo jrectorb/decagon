@@ -192,9 +192,6 @@ drug_feat = sp.identity(n_drugs)
 drug_nonzero_feat, drug_num_feat = drug_feat.shape
 drug_feat = preprocessing.sparse_to_tuple(drug_feat.tocoo())
 
-import pdb
-pdb.set_trace()
-
 # data representation
 num_feat = {
     0: gene_num_feat,
@@ -262,8 +259,6 @@ minibatch = EdgeMinibatchIterator(
 )
 
 print("Create model")
-import pdb
-pdb.set_trace()
 model = DecagonModel(
     placeholders=placeholders,
     num_feat=num_feat,
@@ -311,6 +306,8 @@ for epoch in range(FLAGS.epochs):
             feed_dict=feed_dict,
             dropout=FLAGS.dropout,
             placeholders=placeholders)
+
+        import pdb; pdb.set_trace()
 
         t = time.time()
 

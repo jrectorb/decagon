@@ -39,7 +39,7 @@ class ObjectWalker:
             return
 
         # Only walk objects defined in our code
-        if ObjectWalker._modulesMatch(obj):
+        if isinstance(obj, (dict, list)) or ObjectWalker._modulesMatch(obj):
             genFxn = None
             if isinstance(obj, list):
                 genFxn = ObjectWalker._walkList
@@ -123,6 +123,7 @@ class ObjectWalker:
         pathStr: str,
         depth: int
     ) -> Iterator[TraversedObject]:
+        print(obj)
         for attrName in dir(obj):
             if attrName in ignoreStrs or attrName[:2] == '__':
                 continue
@@ -141,8 +142,6 @@ class ObjectWalker:
 
             except AttributeError:
                 continue
-            except KeyError:
-                import pdb; pdb.set_trace()
 
     @staticmethod
     def _getAttributes(obj: object) -> Iterable[TraversedObject]:

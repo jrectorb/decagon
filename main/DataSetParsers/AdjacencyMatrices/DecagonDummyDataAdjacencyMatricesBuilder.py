@@ -44,7 +44,7 @@ class DecagonDummyDataAdjacencyMatricesBuilder(
     ) -> RelationIDToSparseMtx:
         result: RelationIDToSparseMtx = {}
 
-        tmp = np.dot(drugProteinMtx, drugProteinMtx.transpose(copy=True))
+        tmp = np.dot(drugProteinMtx.transpose(copy=True), drugProteinMtx)
         for i in range(self.numDrugDrugRelationTypes):
             mat = np.zeros((self.numDrugs, self.numDrugs))
 
@@ -57,6 +57,13 @@ class DecagonDummyDataAdjacencyMatricesBuilder(
         return result
 
     def _buildPpiMtx(self) -> sp.csr_matrix:
-        plantedGraph = nx.planted_partition_graph(50, 10, 0.2, 0.05, seed=42)
+        plantedGraph = nx.planted_partition_graph(
+            self.numProteins // 10,
+            10,
+            0.2,
+            0.05,
+            seed=42
+        )
+
         return nx.adjacency_matrix(plantedGraph)
 

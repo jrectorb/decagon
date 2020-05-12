@@ -9,7 +9,7 @@
     "ProteinToDrugEdgeDecoder": "bilinear",
     "DrugProteinEdgeDecoder": "bilinear",
     "DrugDrugEdgeDecoder": "dedicom",
-    "neg_sample_size": 1,
+    "neg_sample_size": 1.0,
     "learning_rate": 0.001,
     "epochs": 50,
     "hidden1": 64,
@@ -21,5 +21,10 @@
     "bias": "True",
     "ValidationSetProportion": 0.05,
     "NumIterationsPerLog": 150,
-    "NumIterationsPerCheckpoint": 300
+    "NumIterationsPerCheckpoint": 300,
+    "CheckpointDirectory": "/Users/jarridr/repos/decagon/ckpts",
+    "TrainIterationResultDir": "/Users/jarridr/repos/decagon/results",
+    "MaxCheckpointsToKeep": 3,
+    "CustomCheckpointName": "dummy_data",
+    "NumEpochs": 50
 }

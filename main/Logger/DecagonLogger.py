@@ -1,10 +1,12 @@
 from .BaseLogger import BaseLogger
+from ..AccuracyEvaluators.Tensorflow.DecagonAccuracyEvaluator import DecagonAccuracyEvaluator
 from ..Checkpointer.TensorflowCheckpointer import TensorflowCheckpointer
 from ..Dtos.AccuracyScores import AccuracyScores
 from ..Dtos.Decagon.DecagonTrainingIterationResults import DecagonTrainingIterationResults
 from ..Dtos.Enums.DataSetType import DataSetType
 from ..Trainable.Decagon.DecagonTrainable import DecagonTrainable
 from ..Utils.Config import Config
+from pathlib import Path
 from typing import Dict
 import _io
 import tensorflow as tf
@@ -40,9 +42,10 @@ class DecagonLogger(BaseLogger, dataSetType=None):
 
         self.trainable: DecagonTrainable = trainable
         self.accuracyEvaluator: DecagonAccuracyEvaluator = DecagonAccuracyEvaluator(
-            trainable.optimizer,
+            session,
             trainable.placeholders,
-            config
+            trainable.optimizer.opt_op,
+            trainable.dataSetIterator.edge_type2idx
         )
 
         atexit.register(_closeFile, f=self.trainResultLogFile)
@@ -52,6 +55,8 @@ class DecagonLogger(BaseLogger, dataSetType=None):
 
     def _getTrainResultFileName(self, config: Config) -> str:
         baseDir = config.getSetting('TrainIterationResultDir')
+        Path(baseDir).mkdir(parents=True, exist_ok=True)
+
         existingIndices = [
             self._getFnameIdx(f)
             for f in os.listdir(baseDir)
