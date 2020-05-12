@@ -1,10 +1,14 @@
 from .BaseCheckpointer import BaseCheckpointer
 from ..Dtos.Trainable.TensorflowTrainable import TensorflowTrainable
+from ..Utils import StrUtils
 from ..Utils.Config import Config
 from pathlib import Path
+import string
 import tensorflow as tf
 import tensorflow.contrib.eager as tfe
 import os
+
+NON_DIGIT_CHARS = set(string.printable).difference(set(string.digits))
 
 class TensorflowCheckpointer(BaseCheckpointer):
     def __init__(
@@ -43,13 +47,13 @@ class TensorflowCheckpointer(BaseCheckpointer):
 
     def _getCurrFnameIdx(self) -> int:
         existingIndices = [
-            self._getFnameIdx(f)
+            self._getFnameIdx(f, self.ckptBaseName)
             for f in os.listdir(self.ckptDir)
             if self._isValidFname(self.ckptDir, f, self.ckptBaseName)
         ]
 
         if len(existingIndices) > 0:
-            thisFileIdx = max(thisFileIdx)
+            return max(existingIndices)
         else:
             return -1
 
@@ -57,10 +61,15 @@ class TensorflowCheckpointer(BaseCheckpointer):
         fnameFirstPortion = fname.split('.')[0]
         lastUscoreIdx = fnameFirstPortion.rfind('_')
 
-        return int(fnameFirstPortion[lastUscoreIdx + 1:])
+        strippedFname = fnameFirstPortion[lastUscoreIdx + 1:]
+
+        nonNumIdx = StrUtils.rfindsub(strippedFname, NON_DIGIT_CHARS)
+        if nonNumIdx != -1:
+            strippedFname = strippedFname[:nonNumIdx]
+
+        return int(strippedFname)
 
     def _isValidFname(self, baseDir: str, fname: str, matchStr: str) -> bool:
-        import pdb; pdb.set_trace()
         isFile = os.path.isfile(baseDir + fname)
 
         # From "thiscoolfile.txt", extract "thiscoolfile"
@@ -73,7 +82,6 @@ class TensorflowCheckpointer(BaseCheckpointer):
 
     def save(self):
         newFname = self.ckptDir + self._getCkptName(isNew=True)
-        import pdb; pdb.set_trace()
         self.checkpoint.save(newFname, session=self.session)
 
     def restore(self):

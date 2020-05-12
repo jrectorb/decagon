@@ -66,9 +66,9 @@ class DecagonLogger(BaseLogger, dataSetType=None):
 
         thisFileIdx = 0
         if len(existingIndices) > 0:
-            thisFileIdx = max(thisFileIdx)
+            thisFileIdx = max(existingIndices) + 1
 
-        return LOG_FILE_FORMAT % thisFileIdx
+        return baseDir + LOG_FILE_FORMAT % thisFileIdx
 
     def _getFnameIdx(self, fname: str) -> int:
         stripPre = fname.lstrip(LOG_FILE_FORMAT[:PERC_IDX])
@@ -77,9 +77,9 @@ class DecagonLogger(BaseLogger, dataSetType=None):
         return int(stripPost)
 
     def _isValidFname(self, baseDir: str, fname: str) -> bool:
-        isFile = os.isfile(baseDir, fname)
+        isFile = os.path.isfile(baseDir + fname)
         isGoodPrefix = fname[:PERC_IDX] == LOG_FILE_FORMAT[:PERC_IDX]
-        isGoodPostfix = fname[DOT_IDX:] = LOG_FILE_FORMAT[DOT_IDX:]
+        isGoodPostfix = fname[fname.rfind('.'):] == LOG_FILE_FORMAT[DOT_IDX:]
 
         return isFile and isGoodPrefix and isGoodPostfix
 
@@ -171,16 +171,14 @@ class DecagonLogger(BaseLogger, dataSetType=None):
         iterationResults: DecagonTrainingIterationResults,
         accuracyScores: AccuracyScores
     ) -> str:
-        '''
-            IterationNum: %d
-            Loss: %f
-            Latency: %f
-            EdgeType: %s
-            AUROC: %f
-            AUPRC: %f
-            APK: %f
-
-
+        return '''
+IterationNum: %d
+Loss: %f
+Latency: %f
+EdgeType: %s
+AUROC: %f
+AUPRC: %f
+APK: %f
 
         ''' % (
             self.numIterationsDone,
