@@ -4,8 +4,9 @@ from ...Dtos.NodeFeatures import NodeFeatures
 from ...Dtos.NodeIds import DrugId, SideEffectId
 from ...Dtos.NodeLists import NodeLists
 from ...Utils import Config
+from ...Utils.Sparse import RelationCooMatrix
 from collections import defaultdict
-from typing import Dict, List, Iterable
+from typing import Dict, List, Iterable, Type
 import csv
 import numpy as np
 import scipy.sparse as sp
@@ -27,10 +28,10 @@ class DecagonPublicDataNodeFeaturesBuilder(
             drugNodeFeatures=self._getDrugNodeFeatures(),
         )
 
-    def _getProteinNodeFeatures(self) -> sp.coo_matrix:
-        return sp.identity(self.numProteins, format=sp.coo_matrix)
+    def _getProteinNodeFeatures(self) -> Type[sp.coo_matrix]:
+        return RelationCooMatrix(sp.identity(self.numProteins, format=sp.coo_matrix))
 
-    def _getDrugNodeFeatures(self) -> sp.coo_matrix:
+    def _getDrugNodeFeatures(self) -> Type[sp.coo_matrix]:
         drugFeaturesDict = self._getDrugFeaturesDict()
 
         drugIdToIdx = self._getDrugIdToIdx(drugFeaturesDict.Keys())
@@ -47,7 +48,7 @@ class DecagonPublicDataNodeFeaturesBuilder(
 
                 result[drugIdx, sideEffectIdx] = 1
 
-        return sp.coo_matrix(result)
+        return RelationCooMatrix(result)
 
     def _getDrugFeaturesDict(self) -> DrugFeaturesDict:
         DRUG_ID_IDX     = 0

@@ -3,6 +3,7 @@ from ...Dtos.Enums.DataSetType import DataSetType
 from ...Dtos.NodeFeatures import NodeFeatures
 from ...Dtos.NodeLists import NodeLists
 from ...Utils import Config
+from ...Utils.Sparse import RelationCsrMatrix
 import scipy.sparse as sp
 
 class DecagonDummyDataNodeFeaturesBuilder(
@@ -15,7 +16,7 @@ class DecagonDummyDataNodeFeaturesBuilder(
 
     def build(self) -> NodeFeatures:
         return NodeFeatures(
-            proteinNodeFeatures=sp.identity(self.numProteins).tocoo(),
-            drugNodeFeatures=sp.identity(self.numDrugs).tocoo(),
+            proteinNodeFeatures=RelationCsrMatrix(sp.identity(self.numProteins)).tocoo(),
+            drugNodeFeatures=RelationCsrMatrix(sp.identity(self.numDrugs)).tocoo(),
         )
 

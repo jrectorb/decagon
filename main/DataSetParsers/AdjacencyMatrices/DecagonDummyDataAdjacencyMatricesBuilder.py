@@ -3,6 +3,7 @@ from ...Dtos.AdjacencyMatrices import AdjacencyMatrices
 from ...Dtos.Enums.DataSetType import DataSetType
 from ...Dtos.NodeLists import NodeLists
 from ...Utils.Config import Config
+from ...Utils.Sparse import RelationCsrMatrix
 from typing import Dict, Type
 from itertools import combinations
 import networkx as nx
@@ -22,7 +23,7 @@ class DecagonDummyDataAdjacencyMatricesBuilder(
         self.numDrugs: int                 = len(nodeLists.drugNodeList)
 
     def build(self) -> AdjacencyMatrices:
-        drugProteinRelationMtx: sp.csr_matrix = self._buildDrugProteinRelationMtx()
+        drugProteinRelationMtx: Type[sp.csr_matrix] = self._buildDrugProteinRelationMtx()
         drugDrugRelationMtxs: RelationIDToSparseMtx = \
             self._buildDrugDrugRelationMtxs(drugProteinRelationMtx)
 
@@ -32,15 +33,15 @@ class DecagonDummyDataAdjacencyMatricesBuilder(
             proteinProteinRelationMtx=self._buildPpiMtx(),
         )
 
-    def _buildDrugProteinRelationMtx(self) -> sp.csr_matrix:
+    def _buildDrugProteinRelationMtx(self) -> Type[sp.csr_matrix]:
         preMtx = 10 * np.random.randn(self.numProteins, self.numDrugs)
         binaryMtx = (preMtx > 15).astype(int)
 
-        return sp.csr_matrix(binaryMtx)
+        return RelationCsrMatrix(binaryMtx)
 
     def _buildDrugDrugRelationMtxs(
         self,
-        drugProteinMtx: sp.csr_matrix
+        drugProteinMtx: Type[sp.csr_matrix]
     ) -> RelationIDToSparseMtx:
         result: RelationIDToSparseMtx = {}
 
@@ -52,11 +53,11 @@ class DecagonDummyDataAdjacencyMatricesBuilder(
                 if tmp[d1, d2] == i + 4:
                     mat[d1, d2] = mat[d2, d1] = 1.
 
-            result[str(i)] = sp.csr_matrix(mat)
+            result[str(i)] = RelationCsrMatrix(mat)
 
         return result
 
-    def _buildPpiMtx(self) -> sp.csr_matrix:
+    def _buildPpiMtx(self) -> Type[sp.csr_matrix]:
         plantedGraph = nx.planted_partition_graph(
             self.numProteins // 10,
             10,
@@ -65,5 +66,5 @@ class DecagonDummyDataAdjacencyMatricesBuilder(
             seed=42
         )
 
-        return nx.adjacency_matrix(plantedGraph)
+        return RelationCsrMatrix(nx.adjacency_matrix(plantedGraph))
 

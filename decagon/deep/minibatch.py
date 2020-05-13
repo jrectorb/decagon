@@ -97,11 +97,9 @@ class EdgeMinibatchIterator(object):
 
 
     def mask_test_edges(self, edge_type, type_idx):
-        import pdb; pdb.set_trace()
         edges_all, _, _ = preprocessing.sparse_to_tuple(self.adj_mats[edge_type][type_idx])
         num_test = max(50, int(np.floor(edges_all.shape[0] * self.val_test_size)))
         num_val = max(50, int(np.floor(edges_all.shape[0] * self.val_test_size)))
-        x = self._setDiffIndices(self._getIdxPairs((200,200)), edges_all)
 
         all_edge_idx = list(range(edges_all.shape[0]))
         np.random.shuffle(all_edge_idx)

@@ -4,6 +4,8 @@ from ...Dtos.Enums.DataSetType import DataSetType
 from ...Dtos.NodeLists import NodeLists
 from ...Dtos.TypeShortcuts import EdgeList, RelationIDToEdgeList, RelationIDToGraph, RelationIDToSparseMtx
 from ...Utils import Config
+from ...Utils.Sparse import RelationCsrMatrix
+from typing import Type
 from collections import defaultdict
 import networkx as nx
 import numpy as np
@@ -92,7 +94,7 @@ class DecagonPublicDataAdjacencyMatricesBuilder(
     def _isEdgeListValid(self, edgeList: EdgeList) -> bool:
         return len(edgeList) >= 500
 
-    def _buildDrugProteinRelationMtx(self) -> sp.csr_matrix:
+    def _buildDrugProteinRelationMtx(self) -> Type[sp.csr_matrix]:
         drugToIdx = {drug: idx for idx, drug in enumerate(self.drugNodeList)}
         proteinToIdx = {protein: idx for idx, protein in enumerate(self.proteinNodeList)}
 
@@ -101,7 +103,7 @@ class DecagonPublicDataAdjacencyMatricesBuilder(
             drug, protein = self._extractDrugProtein(edge)
             drugProteinMtx[drugToIdx[drug], proteinToIdx[protein]] = 1
 
-        return sp.csr_matrix(drugProteinMtx)
+        return RelationCsrMatrix(drugProteinMtx)
 
     def _extractDrugProtein(self, edge: tuple) -> tuple:
         drugIdx = 0 if edge[0][:3] == 'CID' else 1
@@ -109,7 +111,10 @@ class DecagonPublicDataAdjacencyMatricesBuilder(
 
         return edge[drugIdx], edge[proteinIdx]
 
-    def _buildPpiMtx(self) -> sp.spmatrix:
+    def _buildPpiMtx(self) -> Type[sp.spmatrix]:
         self.ppiGraph.add_nodes_from(self._getDrugProteinGraphProteins())
-        return nx.adjacency_matrix(self.ppiGraph, nodelist=self.proteinNodeList)
+
+        return RelationCsrMatrix(
+            nx.adjacency_matrix(self.ppiGraph, nodelist=self.proteinNodeList)
+        )
 
