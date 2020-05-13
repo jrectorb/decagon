@@ -77,10 +77,31 @@ class EdgeMinibatchIterator(object):
         rows_close = np.all(a - b == 0, axis=1)
         return np.any(rows_close)
 
+    def _getIdxPairs(self, setShape):
+        xx, yy = np.indices(setShape, dtype=np.dtype(np.int32))
+
+        return np.dstack([xx, yy]).reshape(-1, 2)
+
+    def _setDiffIndices(self, allIdxPairs, setPairsSubset):
+        allPairsRows = allIdxPairs.view(
+            [('', allIdxPairs.dtype)] * allIdxPairs.shape[1]
+        )
+
+        subsetPairsRows = setPairsSubset.view(
+            [('', setPairsSubset.dtype)] * setPairsSubset.shape[1]
+        )
+
+        return np.setdiff1d(allPairsRows, subsetPairsRows).view(
+            allIdxPairs.dtype
+        ).reshape((-1, allPairsRows.shape[1]))
+
+
     def mask_test_edges(self, edge_type, type_idx):
+        import pdb; pdb.set_trace()
         edges_all, _, _ = preprocessing.sparse_to_tuple(self.adj_mats[edge_type][type_idx])
         num_test = max(50, int(np.floor(edges_all.shape[0] * self.val_test_size)))
         num_val = max(50, int(np.floor(edges_all.shape[0] * self.val_test_size)))
+        x = self._setDiffIndices(self._getIdxPairs((200,200)), edges_all)
 
         all_edge_idx = list(range(edges_all.shape[0]))
         np.random.shuffle(all_edge_idx)
