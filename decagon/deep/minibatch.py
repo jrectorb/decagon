@@ -8,6 +8,7 @@ from ..utility import preprocessing
 
 np.random.seed(123)
 
+EDGES_IDX = 0
 
 class EdgeMinibatchIterator(object):
     """ This minibatch iterator iterates over batches of sampled edges or
@@ -17,7 +18,6 @@ class EdgeMinibatchIterator(object):
     batch_size -- size of the minibatches
     """
     def __init__(self, adj_mats, feat, edge_types, batch_size=100, val_test_size=0.01):
-        import pdb
         self.adj_mats = adj_mats
         self.feat = feat
         self.edge_types = edge_types
@@ -31,11 +31,16 @@ class EdgeMinibatchIterator(object):
         self.current_edge_type_idx = 0
         self.edge_type2idx = {}
         self.idx2edge_type = {}
+        self.adj_mtx_to_idx = {}
         r = 0
         for i, j in self.edge_types:
             for k in range(self.edge_types[i,j]):
                 self.edge_type2idx[i, j, k] = r
                 self.idx2edge_type[r] = i, j, k
+
+                mtx = self.adj_mats[(i, j)][k]
+                self.adj_mtx_to_idx[mtx.id] = ((i, j), k)
+
                 r += 1
 
         self.train_edges = {edge_type: [None]*n for edge_type, n in self.edge_types.items()}
@@ -97,6 +102,58 @@ class EdgeMinibatchIterator(object):
 
 
     def mask_test_edges(self, edge_type, type_idx):
+        mtx = self.adj_mats[edge_type][type_idx]
+
+        if mtx.isTranspose and self._test_edges_exist_tposed_mtx(mtx):
+            return self._mask_test_edges_from_tpose(edge_type, type_idx, mtx)
+        else:
+            return self._mask_test_edges_new(edge_type, type_idx)
+
+    def _test_edges_exist_tposed_mtx(self, mtx):
+        if not mtx.isTranspose:
+            return False
+
+        edge_type, type_idx = self.adj_mtx_to_idx[mtx.transposedMtxLink.id]
+        return self.train_edges[edge_type][type_idx] is not None
+
+    def _mask_test_edges_from_tpose(self, edge_type, type_idx, mtx):
+        if not mtx.isTranspose:
+            return False
+
+        edge_type_tpose, type_idx_tpose = self.adj_mtx_to_idx[mtx.transposedMtxLink.id]
+
+        old_train_infos = self.adj_train[edge_type_tpose][type_idx_tpose]
+        new_edges = np.flip(old_train_infos[EDGES_IDX], axis=1)
+        self.adj_train[edge_type][type_idx] = (
+            new_edges,
+            old_train_infos[1],
+            old_train_infos[2]
+        )
+
+        self.train_edges[edge_type][type_idx] = np.flip(
+            self.train_edges[edge_type_tpose][type_idx_tpose], axis=1
+        )
+
+        self.val_edges[edge_type][type_idx] = np.flip(
+            self.val_edges[edge_type_tpose][type_idx_tpose], axis=1
+        )
+
+        self.val_edges_false[edge_type][type_idx] = np.flip(
+            self.val_edges_false[edge_type_tpose][type_idx_tpose], axis=1
+        )
+
+        self.test_edges[edge_type][type_idx] = np.flip(
+            self.test_edges[edge_type_tpose][type_idx_tpose], axis=1
+        )
+
+        try:
+            self.test_edges_false[edge_type][type_idx] = np.flip(
+                self.test_edges_false[edge_type_tpose][type_idx_tpose], axis=1
+            )
+        except ValueError:
+            import pdb; pdb.set_trace()
+
+    def _mask_test_edges_new(self, edge_type, type_idx):
         edges_all, _, _ = preprocessing.sparse_to_tuple(self.adj_mats[edge_type][type_idx])
         num_test = max(50, int(np.floor(edges_all.shape[0] * self.val_test_size)))
         num_val = max(50, int(np.floor(edges_all.shape[0] * self.val_test_size)))
@@ -112,6 +169,8 @@ class EdgeMinibatchIterator(object):
 
         train_edges = np.delete(edges_all, np.hstack([test_edge_idx, val_edge_idx]), axis=0)
 
+        if len(test_edges) == 0:
+            import pdb; pdb.set_trace()
         test_edges_false = []
         while len(test_edges_false) < len(test_edges):
             if len(test_edges_false) % 1000 == 0:

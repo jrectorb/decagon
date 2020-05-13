@@ -1,7 +1,7 @@
 {
     "DataSetType": "DecagonDummyData",
-    "NumProteins": 200,
-    "NumDrugs": 250,
+    "NumProteins": 400,
+    "NumDrugs": 500,
     "NumDrugDrugRelationTypes": 3,
     "TrainWithTransposedAdjacencyMatrices": "True",
     "DecagonDrugDrugRelationsFilename": "/Users/jarridr/repos/decagon/bio-decagon-combo.csv",

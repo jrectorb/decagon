@@ -200,8 +200,7 @@ class DecagonDataSet:
         tmp: EdgeTypeAdjacencyMatrixDict = {}
         for edgeType, mtxs in adjMtxDict.items():
             mtxs = DecagonDataSet._extractMtxs(adjMtxDict[edgeType])
-            tMtxs = [mtx.transpose(copy=True) for mtx in mtxs]
-            import pdb; pdb.set_trace()
+            tMtxs = [mtx.transpose(copy=True, setId=True) for mtx in mtxs]
 
             if edgeType == DecagonDataSet.PPI_TO_DRUG_EDGE_TYPE:
                 tmp[edgeType] = mtxs
