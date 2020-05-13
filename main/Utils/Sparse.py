@@ -42,7 +42,7 @@ class RelationCsrMatrix(sp.csr_matrix):
         newMtx = RelationCsrMatrix(super().transpose(axes, copy))
 
         self.isTranspose = True
-        self.tranposedMtxLink = newMtx
+        self.transposedMtxLink = newMtx
 
         newMtx.isTranspose = True
         newMtx.transposedMtxLink = self

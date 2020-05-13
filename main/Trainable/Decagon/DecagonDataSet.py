@@ -201,6 +201,7 @@ class DecagonDataSet:
         for edgeType, mtxs in adjMtxDict.items():
             mtxs = DecagonDataSet._extractMtxs(adjMtxDict[edgeType])
             tMtxs = [mtx.transpose(copy=True) for mtx in mtxs]
+            import pdb; pdb.set_trace()
 
             if edgeType == DecagonDataSet.PPI_TO_DRUG_EDGE_TYPE:
                 tmp[edgeType] = mtxs
