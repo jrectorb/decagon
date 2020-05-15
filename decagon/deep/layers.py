@@ -87,7 +87,6 @@ class GraphConvolutionSparseMulti(MultiLayer):
         for k in range(self.num_types):
             x = dropout_sparse(inputs, 1-self.dropout, self.nonzero_feat[self.edge_type[1]])
             x = tf.sparse_tensor_dense_matmul(x, self.vars['weights_%d' % k])
-            print(self.edge_type)
             x = tf.sparse_tensor_dense_matmul(self.adj_mats[self.edge_type][k], x)
             outputs.append(self.act(x))
         outputs = tf.add_n(outputs)

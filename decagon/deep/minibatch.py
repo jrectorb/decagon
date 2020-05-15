@@ -127,7 +127,7 @@ class EdgeMinibatchIterator(object):
         self.adj_train[edge_type][type_idx] = (
             new_edges,
             old_train_infos[1],
-            old_train_infos[2]
+            (old_train_infos[2][1], old_train_infos[2][0])
         )
 
         self.train_edges[edge_type][type_idx] = np.flip(
