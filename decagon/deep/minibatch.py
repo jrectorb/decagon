@@ -169,8 +169,6 @@ class EdgeMinibatchIterator(object):
 
         train_edges = np.delete(edges_all, np.hstack([test_edge_idx, val_edge_idx]), axis=0)
 
-        if len(test_edges) == 0:
-            import pdb; pdb.set_trace()
         test_edges_false = []
         while len(test_edges_false) < len(test_edges):
             if len(test_edges_false) % 1000 == 0:
