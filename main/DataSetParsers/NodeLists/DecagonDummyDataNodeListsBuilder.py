@@ -6,7 +6,7 @@ from ...Utils import Config
 
 class DecagonDummyDataNodeListsBuilder(
     BaseNodeListsBuilder,
-    dataSetType = DataSetType.DecagonDummyData
+    functionalityType = DataSetType.DecagonDummyData
 ):
     def __init__(self, config: Config) -> None:
         self.numProteins: int = config.getSetting('NumProteins')

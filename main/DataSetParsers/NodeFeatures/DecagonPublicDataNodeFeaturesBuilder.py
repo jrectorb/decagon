@@ -15,7 +15,7 @@ DrugFeaturesDict = Dict[DrugId, List[SideEffectId]]
 
 class DecagonPublicDataNodeFeaturesBuilder(
     BaseNodeFeaturesBuilder,
-    dataSetType = DataSetType.DecagonPublicData
+    functionalityType = DataSetType.DecagonPublicData
 ):
     def __init__(self, nodeLists: NodeLists, config: Config) -> None:
         self.filename: str = config.getSetting('NodeFeaturesFilename')

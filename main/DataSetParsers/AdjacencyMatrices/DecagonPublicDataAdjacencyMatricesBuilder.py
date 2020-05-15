@@ -13,7 +13,7 @@ import scipy.sparse as sp
 
 class DecagonPublicDataAdjacencyMatricesBuilder(
     BaseAdjacencyMatricesBuilder,
-    dataSetType = DataSetType.DecagonPublicData
+    functionalityType = DataSetType.DecagonPublicData
 ):
     def __init__(self, nodeLists: NodeLists, config: Config) -> None:
         self.drugDrugRelationGraph: nx.MultiGraph = nx.read_edgelist(

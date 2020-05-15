@@ -1,5 +1,8 @@
 {
     "DataSetType": "DecagonDummyData",
+    "TrainableType": "DecagonTrainable",
+    "ActiveLearnerType": "NoopActiveLearner",
+    "TrainerType": "DecagonTrainer",
     "NumProteins": 200,
     "NumDrugs": 250,
     "NumDrugDrugRelationTypes": 3,

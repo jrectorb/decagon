@@ -2,7 +2,7 @@ from .DecagonDataSet import DecagonDataSet
 from .DecagonTrainable import DecagonTrainable
 from ..BaseTrainableBuilder import BaseTrainableBuilder
 from ...Dtos.DataSet import DataSet
-from ..Dtos.Enums.TrainableType import TrainableType
+from ...Dtos.Enums.TrainableType import TrainableType
 from ...Dtos.IterationResults import IterationResults
 from ...Dtos.Trainable.Trainable import Trainable
 from ...Utils.Config import Config

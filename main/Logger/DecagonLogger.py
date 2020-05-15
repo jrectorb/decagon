@@ -3,7 +3,7 @@ from ..AccuracyEvaluators.Tensorflow.DecagonAccuracyEvaluator import DecagonAccu
 from ..Checkpointer.TensorflowCheckpointer import TensorflowCheckpointer
 from ..Dtos.AccuracyScores import AccuracyScores
 from ..Dtos.Decagon.DecagonTrainingIterationResults import DecagonTrainingIterationResults
-from ..Dtos.Enums.DataSetType import DataSetType
+from ..Dtos.Enums.LoggerType import LoggerType
 from ..Trainable.Decagon.DecagonTrainable import DecagonTrainable
 from ..Utils.Config import Config
 from pathlib import Path

@@ -1,6 +1,6 @@
 from abc import ABCMeta
 from enum import Enum
-from typing import ClassVar, Dict, Callable
+from typing import ClassVar, Dict, Callable, Type
 from .Config import Config
 import inspect
 

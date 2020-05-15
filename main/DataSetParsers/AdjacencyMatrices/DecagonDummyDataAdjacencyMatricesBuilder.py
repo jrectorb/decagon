@@ -15,7 +15,7 @@ RelationIDToSparseMtx = Dict[str, Type[sp.spmatrix]]
 
 class DecagonDummyDataAdjacencyMatricesBuilder(
     BaseAdjacencyMatricesBuilder,
-    dataSetType = DataSetType.DecagonDummyData
+    functionalityType = DataSetType.DecagonDummyData
 ):
     def __init__(self, nodeLists: NodeLists, config: Config) -> None:
         self.numDrugDrugRelationTypes: int = int(config.getSetting('NumDrugDrugRelationTypes'))

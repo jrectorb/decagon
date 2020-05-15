@@ -8,7 +8,7 @@ import scipy.sparse as sp
 
 class DecagonDummyDataNodeFeaturesBuilder(
     BaseNodeFeaturesBuilder,
-    dataSetType = DataSetType.DecagonDummyData
+    functionalityType = DataSetType.DecagonDummyData
 ):
     def __init__(self, nodeLists: NodeLists, config: Config) -> None:
         self.numDrugs: int    = int(config.getSetting('NumDrugs'))

@@ -11,7 +11,7 @@ import scipy.sparse as sp
 
 class DecagonPublicDataNodeListsBuilder(
     BaseNodeListsBuilder,
-    dataSetType = DataSetType.DecagonPublicData
+    functionalityType = DataSetType.DecagonPublicData
 ):
     def __init__(self, config: Config) -> None:
         self.drugDrugRelationGraph: nx.MultiGraph = nx.read_edgelist(
