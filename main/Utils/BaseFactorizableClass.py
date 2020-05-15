@@ -1,10 +1,10 @@
 from abc import ABCMeta
+from enum import Enum
 from typing import ClassVar, Dict, Callable
 from .Config import Config
-from ..Dtos.Enums.DataSetType import DataSetType
 import inspect
 
-ClassesDictType = ClassVar[Dict[type, Dict[DataSetType, type]]]
+ClassesDictType = ClassVar[Dict[type, Dict[Type[Enum], type]]]
 
 class BaseFactorizableClass(metaclass=ABCMeta):
     '''
@@ -17,17 +17,17 @@ class BaseFactorizableClass(metaclass=ABCMeta):
 
     classes: ClassesDictType = {}
 
-    def __init_subclass__(cls, dataSetType: DataSetType, **kwargs) -> None:
+    def __init_subclass__(cls, functionalityType: Type[Enum], **kwargs) -> None:
         super().__init_subclass__(**kwargs)
 
         print(cls)
 
-        if dataSetType is not None:
+        if functionalityType is not None:
             lookupClass = cls._getBaseType()
             if lookupClass not in BaseFactorizableClass.classes:
                 BaseFactorizableClass.classes[lookupClass] = {}
 
-            BaseFactorizableClass.classes[lookupClass][dataSetType] = cls
+            BaseFactorizableClass.classes[lookupClass][functionalityType] = cls
 
     @classmethod
     def _getBaseType(cls) -> type:

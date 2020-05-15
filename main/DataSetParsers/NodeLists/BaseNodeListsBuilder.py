@@ -3,7 +3,7 @@ from ...Dtos.NodeLists import NodeLists
 from ...Utils.BaseFactorizableClass import BaseFactorizableClass
 from ...Utils.Config import Config
 
-class BaseNodeListsBuilder(BaseFactorizableClass, dataSetType=None, metaclass=ABCMeta):
+class BaseNodeListsBuilder(BaseFactorizableClass, functionalityType=None, metaclass=ABCMeta):
     @abstractmethod
     def __init__(self, config: Config) -> None:
         pass

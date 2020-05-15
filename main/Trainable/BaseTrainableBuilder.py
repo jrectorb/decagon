@@ -6,7 +6,7 @@ from ..Dtos.Trainable.Trainable import Trainable
 from ..Utils.BaseFactorizableClass import BaseFactorizableClass
 from ..Utils.Config import Config
 
-class BaseTrainableBuilder(BaseFactorizableClass, dataSetType=None, metaclass=ABCMeta):
+class BaseTrainableBuilder(BaseFactorizableClass, functionalityType=None, metaclass=ABCMeta):
     @abstractmethod
     def __init__(self, dataSet: DataSet, config: Config) -> None:
         pass

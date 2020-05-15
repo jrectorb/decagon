@@ -4,7 +4,7 @@ from ..Dtos.TrainingIterationResults import TrainingIterationResults
 from ..Utils.BaseFactorizableClass import BaseFactorizableClass
 from ..Utils.Config import Config
 
-class BaseLogger(BaseFactorizableClass, dataSetType=None, metaclass=ABCMeta):
+class BaseLogger(BaseFactorizableClass, functionalityType=None, metaclass=ABCMeta):
     def __init__(self, config: Config) -> None:
         self.numIterationsPerLog: int = int(config.getSetting('NumIterationsPerLog'))
         self.numIterationsDone: int = 0

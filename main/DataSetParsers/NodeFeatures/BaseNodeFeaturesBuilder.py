@@ -4,7 +4,7 @@ from ...Dtos.NodeFeatures import NodeFeatures
 from ...Utils.BaseFactorizableClass import BaseFactorizableClass
 from ...Utils.Config import Config
 
-class BaseNodeFeaturesBuilder(BaseFactorizableClass, dataSetType=None, metaclass=ABCMeta):
+class BaseNodeFeaturesBuilder(BaseFactorizableClass, functionalityType=None, metaclass=ABCMeta):
     @abstractmethod
     def __init__(self, config: Config) -> None:
         pass

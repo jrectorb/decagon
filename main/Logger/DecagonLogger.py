@@ -21,7 +21,7 @@ DOT_IDX  = LOG_FILE_FORMAT.find('.')
 def _closeFile(f: _io.TextIOWrapper) -> None:
     f.close()
 
-class DecagonLogger(BaseLogger, dataSetType=None):
+class DecagonLogger(BaseLogger, functionalityType=LoggerType.DecagonLogger):
     '''
     Note that this class is not thread-safe
     '''
@@ -189,10 +189,4 @@ APK: %f
             accuracyScores.auprc,
             accuracyScores.apk,
         )
-
-class DecagonDummyDataLogger(BaseLogger, dataSetType=DataSetType.DecagonDummyData):
-    pass
-
-class DecagonPublicDataLogger(BaseLogger, dataSetType=DataSetType.DecagonPublicData):
-    pass
 

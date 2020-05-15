@@ -1,7 +1,7 @@
 from .BaseTrainer import BaseTrainer
 from ..Checkpointer.TensorflowCheckpointer import TensorflowCheckpointer
 from ..Dtos.Decagon.DecagonTrainingIterationResults import DecagonTrainingIterationResults
-from ..Dtos.Enums.DataSetType import DataSetType
+from ..Dtos.Enums.TrainerType import TrainerType
 from ..Dtos.Trainable import Trainable
 from ..Logger.DecagonLogger import DecagonLogger
 from ..Trainable.Decagon.DecagonTrainable import DecagonTrainable
@@ -11,7 +11,7 @@ import time
 import multiprocessing
 import tensorflow as tf
 
-class BaseDecagonTrainer(BaseTrainer, dataSetType=None):
+class BaseDecagonTrainer(BaseTrainer, functionalityType=TrainerType.DecagonTrainer):
     def __init__(self, trainable: DecagonTrainable, config: Config) -> None:
         self.optimizer = trainable.optimizer
         self.dataSetIterator = trainable.dataSetIterator
@@ -90,17 +90,4 @@ class BaseDecagonTrainer(BaseTrainer, dataSetType=None):
         outputs = self.session.run(operations, feed_dict=feedDict)
 
         return outputs[ITER_TRAIN_LOSS_IDX], outputs[ITER_EDGE_TYPE_IDX]
-
-
-class DummyDatasetDecagonTrainer(
-    BaseDecagonTrainer,
-    dataSetType = DataSetType.DecagonDummyData
-):
-    pass
-
-class PublicDatasetDecagonTrainer(
-    BaseDecagonTrainer,
-    dataSetType = DataSetType.DecagonPublicData
-):
-    pass
 

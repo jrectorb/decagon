@@ -1,10 +1,13 @@
 from .BaseActiveLearner import BaseActiveLearner
 from ..Dtos.DataSet import DataSet
-from ..Dtos.Enums.DataSetType import DataSetType
+from ..Dtos.Enums.ActiveLearnerType import ActiveLearnerType
 from ..Dtos.IterationResults import IterationResults
 from ..Utils.Config import Config
 
-class NoopActiveLearner(BaseActiveLearner, dataSetType=None):
+class NoopActiveLearner(
+        BaseActiveLearner,
+        functionalityType=ActiveLearnerType.NoopActiveLearner
+):
     def __init__(self, config: Config) -> None:
         # Increment this everytime hasUpdate is called
         self.numIters: int = 0
@@ -24,10 +27,4 @@ class NoopActiveLearner(BaseActiveLearner, dataSetType=None):
         self.numIters += 1
 
         return dataSet
-
-class DummyNoopActiveLearner(NoopActiveLearner, dataSetType=DataSetType.DecagonDummyData):
-    pass
-
-class PublicNoopActiveLearner(NoopActiveLearner, dataSetType=DataSetType.DecagonDummyData):
-    pass
 

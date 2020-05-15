@@ -2,7 +2,7 @@ from .DecagonDataSet import DecagonDataSet
 from .DecagonTrainable import DecagonTrainable
 from ..BaseTrainableBuilder import BaseTrainableBuilder
 from ...Dtos.DataSet import DataSet
-from ...Dtos.Enums.DataSetType import DataSetType
+from ..Dtos.Enums.TrainableType import TrainableType
 from ...Dtos.IterationResults import IterationResults
 from ...Dtos.Trainable.Trainable import Trainable
 from ...Utils.Config import Config
@@ -13,7 +13,10 @@ from typing import Type
 
 import tensorflow as tf
 
-class DecagonTrainableBuilder(BaseTrainableBuilder, dataSetType=None):
+class DecagonTrainableBuilder(
+    BaseTrainableBuilder,
+    functionalityType=TrainableType.DecagonTrainable
+):
     def __init__(self, dataSet: DataSet, config: Config) -> None:
         self.dataSet: DecagonDataSet = DecagonDataSet.fromDataSet(dataSet, config)
         self.config: Config = config
@@ -81,10 +84,4 @@ class DecagonTrainableBuilder(BaseTrainableBuilder, dataSetType=None):
 
     def getIterationResults(self) -> IterationResults:
         return IterationResults()
-
-class DecagonDummyTrainableBuilder(DecagonTrainableBuilder, dataSetType=DataSetType.DecagonDummyData):
-    pass
-
-class DecagonPublicTrainableBuilder(DecagonTrainableBuilder, dataSetType=DataSetType.DecagonPublicData):
-    pass
 
