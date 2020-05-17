@@ -85,6 +85,7 @@ class DecagonLogger(BaseLogger, functionalityType=LoggerType.DecagonLogger):
 
     def _getDictWriter(self) -> csv.DictWriter:
         fieldnames = [
+            'EvaluateAll',
             'IterationNum',
             'Loss',
             'Latency',
@@ -123,40 +124,51 @@ class DecagonLogger(BaseLogger, functionalityType=LoggerType.DecagonLogger):
         feedDict: Dict,
         iterationResults: DecagonTrainingIterationResults
     ) -> None:
-        self._logInternal(feedDict, iterationResults)
+        self._logInternal(feedDict, iterationResults, evalAll=True)
         self.checkpointer.save()
 
     def _logInternal(
         self,
         feedDict: Dict,
-        iterationResults: DecagonTrainingIterationResults
+        iterationResults: DecagonTrainingIterationResults,
+        evalAll: bool = False
     ) -> None:
-        accuracyScores = self._computeAccuracyScores(feedDict)
+        accuracyScores = self._computeAccuracyScores(feedDict, evalAll)
 
-        iterRowDict = self._getCsvRowDict(iterationResults, accuracyScores)
-        iterString  = self._getString(iterationResults, accuracyScores)
+        iterRowDict = self._getCsvRowDict(iterationResults, accuracyScores, evalAll)
+        iterString  = self._getString(iterationResults, accuracyScores, evalAll)
 
         self.trainResultWriter.writerow(iterRowDict)
         print(iterString)
 
         return
 
-    def _computeAccuracyScores(self, feedDict: Dict) -> AccuracyScores:
+    def _computeAccuracyScores(self, feedDict: Dict, evalAll: bool) -> AccuracyScores:
         iterator = self.trainable.dataSetIterator
 
-        return self.accuracyEvaluator.evaluate(
-            feedDict,
-            iterator.idx2edge_type[iterator.current_edge_type_idx],
-            iterator.val_edges,
-            iterator.val_edges_false
-        )
+        if evalAll:
+            return self.accuracyEvaluator.evaluateAll(
+                feedDict,
+                iterator.val_edges,
+                iterator.val_edges_false
+            )
+
+        else:
+            return self.accuracyEvaluator.evaluate(
+                feedDict,
+                iterator.idx2edge_type[iterator.current_edge_type_idx],
+                iterator.val_edges,
+                iterator.val_edges_false
+            )
 
     def _getCsvRowDict(
         self,
         iterationResults: DecagonTrainingIterationResults,
-        accuracyScores: AccuracyScores
+        accuracyScores: AccuracyScores,
+        evalAll: bool
     ) -> Dict:
         return {
+            'EvaluateAll': evalAll,
             'IterationNum': self.numIterationsDone,
             'Loss': iterationResults.iterationLoss,
             'Latency': iterationResults.iterationLatency,
@@ -169,9 +181,11 @@ class DecagonLogger(BaseLogger, functionalityType=LoggerType.DecagonLogger):
     def _getString(
         self,
         iterationResults: DecagonTrainingIterationResults,
-        accuracyScores: AccuracyScores
+        accuracyScores: AccuracyScores,
+        evalAll: bool
     ) -> str:
         return '''
+Evaluated All: %r
 IterationNum: %d
 Loss: %f
 Latency: %f
@@ -181,6 +195,7 @@ AUPRC: %f
 APK: %f
 
         ''' % (
+            evalAll,
             self.numIterationsDone,
             iterationResults.iterationLoss,
             iterationResults.iterationLatency,

@@ -2,7 +2,7 @@ from ...Dtos.AccuracyScores import AccuracyScores
 from ...Dtos.TypeShortcuts import EdgeType, PlaceholdersDict
 from ...Utils.Config import Config
 from ...Utils import MathUtils
-from typing import Dict, List, Tuple
+from typing import Dict, List, Iterable, Tuple, Type
 from sklearn import metrics
 import tensorflow as tf
 import numpy as np
@@ -29,33 +29,67 @@ class LossElementsContainer:
         self.predictions: np.ndarray = predictions
         self.labels: np.ndarray = labels
 
+    @staticmethod
+    def reduce(
+        lossContainers: List[Type['LossElementsContainer']]
+    ) -> Type['LossElementsContainer']:
+        preds  = np.hstack(map(lambda x: x.predictions, lossContainers))
+        labels = np.hstack(map(lambda x: x.labels, lossContainers))
+
+        return LossElementsContainer(preds, labels)
+
 class DecagonAccuracyEvaluator:
     def __init__(
         self,
         session: tf.Session,
         placeholdersDict: PlaceholdersDict,
         predictionsTensor: tf.Tensor,
-        edgeTypeToIdx: EdgeTypeToIdx,
+        relCoordToIdx: EdgeTypeToIdx,
         config: Config
     ) -> None:
         self.session: tf.Session = session
         self.placeholdersDict: PlaceholdersDict = placeholdersDict
         self.predictionsTensor: tf.Tensor  = predictionsTensor
-        self.edgeTypeToIdx : EdgeTypeToIdx = edgeTypeToIdx
+        self.relCoordToIdx : EdgeTypeToIdx = relCoordToIdx
         self.apkRank = int(config.getSetting('ApkRank'))
+
+    def evaluateAll(
+        self,
+        feedDict: Dict,
+        positiveEdgeSamples: EdgeSamples,
+        negativeEdgeSamples: EdgeSamples,
+    ) -> AccuracyScores:
+        def doEval(relCoord: RelationCoordinate) -> AccuracyScores:
+            self._updateFeedDictForEval(feedDict, relCoord)
+
+            return self._computePredictions(
+                feedDict,
+                relCoord,
+                positiveEdgeSamples,
+                negativeEdgeSamples
+            )
+
+        drugRels = filter(lambda x: x[:2] == (1, 1), self.relCoordToIdx.keys())
+        lossElements = LossElementsContainer.reduce(list(map(doEval, drugRels)))
+
+        auroc = metrics.roc_auc_score(lossElements.labels, lossElements.predictions)
+        auprc = metrics.average_precision_score(lossElements.labels, lossElements.predictions)
+        apk   = 0 #self._computeApk(lossElements)
+
+        return AccuracyScores(auroc, auprc, apk)
 
     def evaluate(
         self,
         feedDict: Dict,
-        edgeType: EdgeType,
+        relCoord: RelationCoordinate,
         positiveEdgeSamples: EdgeSamples,
         negativeEdgeSamples: EdgeSamples,
     ) -> AccuracyScores:
-        self._updateFeedDictForEval(feedDict, edgeType)
+        self._updateFeedDictForEval(feedDict, relCoord)
 
         lossElements: LossElementsContainer = self._computePredictions(
             feedDict,
-            edgeType,
+            relCoord,
             positiveEdgeSamples,
             negativeEdgeSamples
         )
@@ -69,7 +103,7 @@ class DecagonAccuracyEvaluator:
     def _computePredictions(
         self,
         feedDict: Dict,
-        edgeType: EdgeType,
+        relCoord: RelationCoordinate,
         positiveEdgeSamples: EdgeSamples,
         negativeEdgeSamples: EdgeSamples,
     ) -> LossElementsContainer:
@@ -79,13 +113,13 @@ class DecagonAccuracyEvaluator:
         positiveSamplePredictions = self._getSampledPredictions(
             predictions,
             positiveEdgeSamples,
-            edgeType
+            relCoord
         )
 
         negativeSamplePredictions = self._getSampledPredictions(
             predictions,
             negativeEdgeSamples,
-            edgeType
+            relCoord
         )
 
         sampledPredictions = np.hstack(
@@ -106,11 +140,11 @@ class DecagonAccuracyEvaluator:
         self,
         predictions: np.ndarray,
         edgeSamples: EdgeSamples,
-        edgeType: EdgeType
+        relCoord: RelationCoordinate
     ) -> np.ndarray:
         linearizedSampleIdxs = self._linearizeSampleIdxs(
             edgeSamples,
-            edgeType,
+            relCoord,
             predictions.shape[COL_SHAPE_IDX]
         )
 
@@ -120,24 +154,24 @@ class DecagonAccuracyEvaluator:
     def _linearizeSampleIdxs(
         self,
         edgeSamples: EdgeSamples,
-        edgeType: EdgeType,
+        relCoord: RelationCoordinate,
         numCols: int
     ) -> np.ndarray:
-        # edgeType is a 3-tuple wherein the first two indices represent the
+        # relCoord is a 3-tuple wherein the first two indices represent the
         # subgraph type, while the last index represents the kth adjacency
         # matrix for that subgraph
-        subGraphType = edgeType[:2]
-        relationType = edgeType[2]
+        subGraphType = relCoord[:2]
+        relationType = relCoord[2]
 
         twoDimSampleIndexes = edgeSamples[subGraphType][relationType]
 
         return (twoDimSampleIndexes[:, 0] * numCols) + twoDimSampleIndexes[:, 1]
 
-    def _updateFeedDictForEval(self, feedDict: Dict, edgeType: EdgeType) -> None:
+    def _updateFeedDictForEval(self, feedDict: Dict, relCoord: RelationCoordinate) -> None:
         feedDict[self.placeholdersDict['dropout']] = 0
-        feedDict[self.placeholdersDict['batch_edge_type_idx']] = self.edgeTypeToIdx[edgeType]
-        feedDict[self.placeholdersDict['batch_row_edge_type']] = edgeType[FROM_GRAPH_IDX]
-        feedDict[self.placeholdersDict['batch_col_edge_type']] = edgeType[TO_GRAPH_IDX]
+        feedDict[self.placeholdersDict['batch_edge_type_idx']] = self.relCoordToIdx[relCoord]
+        feedDict[self.placeholdersDict['batch_row_edge_type']] = relCoord[FROM_GRAPH_IDX]
+        feedDict[self.placeholdersDict['batch_col_edge_type']] = relCoord[TO_GRAPH_IDX]
 
         return
 

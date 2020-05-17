@@ -29,6 +29,6 @@
     "TrainIterationResultDir": "/Users/jarridr/repos/decagon/results/",
     "MaxCheckpointsToKeep": 3,
     "CustomCheckpointName": "dummy_data",
-    "NumEpochs": 50,
+    "NumEpochs": 200,
     "ApkRank": 50
 }

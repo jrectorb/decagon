@@ -151,7 +151,7 @@ class EdgeMinibatchIterator(object):
                 self.test_edges_false[edge_type_tpose][type_idx_tpose], axis=1
             )
         except ValueError:
-            import pdb; pdb.set_trace()
+            self.test_edges_false[edge_type][type_idx] = []
 
     def _mask_test_edges_new(self, edge_type, type_idx):
         edges_all, _, _ = preprocessing.sparse_to_tuple(self.adj_mats[edge_type][type_idx])
