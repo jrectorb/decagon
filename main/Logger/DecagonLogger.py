@@ -28,11 +28,15 @@ class DecagonLogger(BaseLogger, functionalityType=LoggerType.DecagonLogger):
     def __init__(
         self,
         session: tf.Session,
+        dataSetId: str,
         trainable: DecagonTrainable,
         checkpointer: TensorflowCheckpointer,
         config: Config
     ) -> None:
         super().__init__(config)
+
+        self.dataSetId: str = dataSetId
+        self.currEpoch: int = 1
 
         self.trainResultLogFile: _io.TextIOWrapper = self._getTrainResultFile(config)
         self.trainResultWriter: DictWriter = self._getDictWriter()
@@ -85,10 +89,12 @@ class DecagonLogger(BaseLogger, functionalityType=LoggerType.DecagonLogger):
 
     def _getDictWriter(self) -> csv.DictWriter:
         fieldnames = [
-            'EvaluateAll',
+            'DataSetId',
+            'Epoch',
             'IterationNum',
             'Loss',
             'Latency',
+            'EvaluateAll',
             'EdgeType',
             'AUROC',
             'AUPRC',
@@ -126,6 +132,8 @@ class DecagonLogger(BaseLogger, functionalityType=LoggerType.DecagonLogger):
     ) -> None:
         self._logInternal(feedDict, iterationResults, evalAll=True)
         self.checkpointer.save()
+
+        self.currEpoch += 1
 
     def _logInternal(
         self,
@@ -168,6 +176,8 @@ class DecagonLogger(BaseLogger, functionalityType=LoggerType.DecagonLogger):
         evalAll: bool
     ) -> Dict:
         return {
+            'DataSetId': self.dataSetId,
+            'Epoch': self.currEpoch,
             'EvaluateAll': evalAll,
             'IterationNum': self.numIterationsDone,
             'Loss': iterationResults.iterationLoss,
@@ -185,20 +195,24 @@ class DecagonLogger(BaseLogger, functionalityType=LoggerType.DecagonLogger):
         evalAll: bool
     ) -> str:
         return '''
-Evaluated All: %r
+DataSetId: %s
+Epoch: %d
 IterationNum: %d
 Loss: %f
 Latency: %f
+Evaluated All: %r
 EdgeType: %s
 AUROC: %f
 AUPRC: %f
 APK: %f
 
         ''' % (
-            evalAll,
+            self.dataSetId,
+            self.currEpoch,
             self.numIterationsDone,
             iterationResults.iterationLoss,
             iterationResults.iterationLatency,
+            evalAll,
             iterationResults.iterationEdgeType,
             accuracyScores.auroc,
             accuracyScores.auprc,

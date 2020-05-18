@@ -1,8 +1,16 @@
+from .BaseActiveLearner import BaseActiveLearner
+from ..Dtos.AdjacencyMatrices import AdjacencyMatrices
+from ..Dtos.DataSet import DataSet
+from ..Dtos.Enums.ActiveLearnerType import ActiveLearnerType
 from ..Utils.Config import Config
+from ..Utils.Sparse import RelationCsrMatrix
 from operator import itemgetter
 import numpy as np
 
-class RandomMaskingActiveLearner(BaseActiveLearner, functionalityType=None):
+class RandomMaskingActiveLearner(
+    BaseActiveLearner,
+    functionalityType=ActiveLearnerType.RandomMaskingActiveLearner
+):
     def __init__(self, initDataSet, config: Config) -> None:
         self.numIters: int = 0
 
@@ -17,17 +25,13 @@ class RandomMaskingActiveLearner(BaseActiveLearner, functionalityType=None):
         self.currAmountUnmasked = self.initUnmaskedProportion
 
         self.initDataSet = initDataSet
-        self.relIdToIntId = {
-            i: relId
-            for i, relId in initDataSet.adjacencyMatrices.drugDrugRelationMtxs.keys()
-        }
 
         self.adjMtxMasks = {
             rel: np.zeros(mtx.shape)
             for rel, mtx in initDataSet.adjacencyMatrices.drugDrugRelationMtxs.items()
         }
 
-        self.possibilities = self._getIndices(self.adjMtxMasks)
+        self.possibilities = self._getPossibilities(self.adjMtxMasks)
         self.dataSetSize = len(self.possibilities)
 
     @property
@@ -48,55 +52,61 @@ class RandomMaskingActiveLearner(BaseActiveLearner, functionalityType=None):
             xx, yy = np.indices(mtx.shape)
             grid = np.dstack([xx, yy]).reshape(-1, 2)
 
-            graphTypeArr = np.full((grid.shape[0], 1), self.relIdToIntId[rel])
+            graphTypeArr = np.full((grid.shape[0], 1), int(rel))
 
-            preResult.append(np.hstack(graphTypeArr, grid))
+            preResult.append(np.hstack((graphTypeArr, grid)))
 
-        return np.vstack(preResult).tolist()
+        return np.vstack(preResult)
 
     def hasUpdate(self, dataset, iterResults) -> bool:
-        return self.currAmountUnmasked < 1. and not np.isclose(1., self.currAmountUnmasked)
+        return len(self.possibilities) > 0
 
     def getUpdate(self, dataSet, iterResults) -> DataSet:
         self._updateMask()
 
+        idStr = "RandomPolicy%sIter%d" % (self.initDataSet.id, self.numIters)
+        adjMtxs = self._applyMask()
+
+        self.numIters += 1
+
         return DataSet(
-            adjacencyMatrices=self._applyMask(),
+            idStr=idStr,
+            adjacencyMatrices=adjMtxs,
             nodeFeatures=dataSet.nodeFeatures
         )
 
     def _updateMask(self):
-        multiplier = self.initUnmaskedProportion if self.numItes == 0 \
+        multiplier = self.initUnmaskedProportion if self.numIters == 0 \
                      else self.proportionUnmaskedPerIter
 
         numToUnmask = int(np.floor(self.dataSetSize * multiplier))
 
-        samples = np.random.choice(0, len(numToUnmask), size=(numToUnmask,))
+        samples = np.random.choice(
+            len(self.possibilities),
+            size=numToUnmask,
+            replace=False
+        )
+
         idxsToUnmask = itemgetter(*samples)(self.possibilities)
 
         for idx in idxsToUnmask:
-            self.adjMtxMasks[idx[0]][idx[2]][idx[3], idx[4]] = 1
+            self.adjMtxMasks[str(idx[0])][idx[1], idx[2]] = 1
 
-        for sampleIdx in samples:
-            self.possibilities.pop(sampleIdx)
+        self.possibilities = np.delete(self.possibilities, samples, axis=0)
 
         return
 
     def _applyMask(self):
-        newAdjMtxs = AdjacencyMatrices()
+        drugDrugRelationMtxs = {}
+        for relId, maskMtx in self.adjMtxMasks.items():
+            drugDrugRelationMtxs[relId] = RelationCsrMatrix(np.multiply(
+                maskMtx,
+                self.initDataSet.adjacencyMatrices.drugDrugRelationMtxs[relId].toarray()
+            ))
 
-        newAdjMtxs.drugProteinRelationMtx = \
-            self.adjMtxMasks[1][0] * self.initDataSet.adjacencyMatrices.drugProteinRelationMtx
-
-        newAdjMtxs.drugProteinRelationMtx = \
-            self.adjMtxMasks[2][0] * self.initDataSet.adjacencyMatrices.proteinProteinRelationMtx
-
-        newAdjMtxs.drugDrugRelationMtxs = {}
-        for relIdInt, maskMtx in self.adjMtxMasks.items():
-            relId = self.relIdToIntId[relIdInt]
-
-            newAdjMtxs.drugDrugRelationMtxs[relId] = \
-                self.initDataSet.adjacencyMatrices.drugDrugRelationMtxs[relId] * maskMtx
-
-        return newAdjMtxs
+        return AdjacencyMatrices(
+            drugDrugRelationMtxs,
+            self.initDataSet.adjacencyMatrices.drugProteinRelationMtx,
+            self.initDataSet.adjacencyMatrices.proteinProteinRelationMtx
+        )
 

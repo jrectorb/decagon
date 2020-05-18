@@ -1,10 +1,10 @@
 {
     "DataSetType": "DecagonDummyData",
     "TrainableType": "DecagonTrainable",
-    "ActiveLearnerType": "NoopActiveLearner",
+    "ActiveLearnerType": "RandomMaskingActiveLearner",
     "TrainerType": "DecagonTrainer",
-    "NumProteins": 200,
-    "NumDrugs": 250,
+    "NumProteins": 450,
+    "NumDrugs": 500,
     "NumDrugDrugRelationTypes": 3,
     "TrainWithTransposedAdjacencyMatrices": "True",
     "DecagonDrugDrugRelationsFilename": "/Users/jarridr/repos/decagon/bio-decagon-combo.csv",
@@ -29,6 +29,8 @@
     "TrainIterationResultDir": "/Users/jarridr/repos/decagon/results/",
     "MaxCheckpointsToKeep": 3,
     "CustomCheckpointName": "dummy_data",
-    "NumEpochs": 200,
-    "ApkRank": 50
+    "NumEpochs": 35,
+    "ApkRank": 50,
+    "InitialUnmaskedProportion": 0.5,
+    "ProportionUnmaskedPerIteration": 0.05
 }

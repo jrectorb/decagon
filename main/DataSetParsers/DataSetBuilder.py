@@ -14,6 +14,8 @@ class DataSetBuilder:
     def build(config: Config) -> DataSet:
         dataSetType = DataSetType[config.getSetting('DataSetType')]
 
+        idStr = "Base%sDataSet" % dataSetType.name
+
         nodeLists = DataSetBuilder._getNodeLists(dataSetType, config)
 
         adjacencyMatrices = DataSetBuilder._getAdjacencyMatrices(
@@ -28,7 +30,7 @@ class DataSetBuilder:
             config,
         )
 
-        return DataSet(adjacencyMatrices, nodeFeatures)
+        return DataSet(idStr, adjacencyMatrices, nodeFeatures)
 
     @staticmethod
     def _getNodeLists(dataSetType: DataSetType, config: Config) -> NodeLists:

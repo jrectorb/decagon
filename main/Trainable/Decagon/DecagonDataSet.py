@@ -15,7 +15,6 @@ InteractionSubGraphType = int
 EdgeType                = tuple
 StrDecoderSpecifier     = str
 
-
 EdgeTypeMatrixDimensionsDict = Dict[EdgeType, List[tuple]]
 EdgeTypeAdjacencyMatrixDict  = Dict[EdgeType, List[sp.coo_matrix]]
 EdgeTypeDecoderDict          = Dict[EdgeType, StrDecoderSpecifier]
@@ -34,6 +33,8 @@ class DecagonDataSet:
     DRUG_DRUG_EDGE_TYPE   = (DRUG_DRUG_GRAPH_IDX, DRUG_DRUG_GRAPH_IDX)
     PPI_TO_DRUG_EDGE_TYPE = (PPI_GRAPH_IDX, DRUG_DRUG_GRAPH_IDX)
     DRUG_TO_PPI_EDGE_TYPE = (DRUG_DRUG_GRAPH_IDX, PPI_GRAPH_IDX)
+
+    HaveDefinedFlags = False
 
     '''
     This class contains all the necessary information to correctly
@@ -135,16 +136,19 @@ class DecagonDataSet:
 
             defFxn(key, typeToDef(config.getSetting(key)), desc)
 
-        defVal('neg_sample_size', 'Negative sample size.', float)
-        defVal('learning_rate', 'Initial learning rate.', float)
-        defVal('epochs', 'Number of epochs to train.', int)
-        defVal('hidden1', 'Number of units in hidden layer 1.', int)
-        defVal('hidden2', 'Number of units in hidden layer 2.', int)
-        defVal('weight_decay', 'Weight for L2 loss on embedding matrix.', float)
-        defVal('dropout', 'Dropout rate (1 - keep probability).', float)
-        defVal('max_margin', 'Max margin parameter in hinge loss', float)
-        defVal('batch_size', 'Minibatch size.', int)
-        defVal('bias', 'Bias term.', bool)
+        if not DecagonDataSet.HaveDefinedFlags:
+            defVal('neg_sample_size', 'Negative sample size.', float)
+            defVal('learning_rate', 'Initial learning rate.', float)
+            defVal('epochs', 'Number of epochs to train.', int)
+            defVal('hidden1', 'Number of units in hidden layer 1.', int)
+            defVal('hidden2', 'Number of units in hidden layer 2.', int)
+            defVal('weight_decay', 'Weight for L2 loss on embedding matrix.', float)
+            defVal('dropout', 'Dropout rate (1 - keep probability).', float)
+            defVal('max_margin', 'Max margin parameter in hinge loss', float)
+            defVal('batch_size', 'Minibatch size.', int)
+            defVal('bias', 'Bias term.', bool)
+
+            DecagonDataSet.HaveDefinedFlags = True
 
         return flags.FLAGS
 

@@ -5,8 +5,8 @@ from ..Dtos.IterationResults import IterationResults
 from ..Utils.Config import Config
 
 class NoopActiveLearner(
-        BaseActiveLearner,
-        functionalityType=ActiveLearnerType.NoopActiveLearner
+    BaseActiveLearner,
+    functionalityType=ActiveLearnerType.NoopActiveLearner
 ):
     def __init__(self, config: Config) -> None:
         # Increment this everytime hasUpdate is called

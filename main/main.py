@@ -31,21 +31,27 @@ def _getTrainable(dataSet: Type[DataSet], config: Config) -> Type[Trainable]:
 
     return trainableBuilder.build()
 
-def _getActiveLearner(config: Config) -> Type[BaseActiveLearner]:
+def _getActiveLearner(dataSet, config: Config) -> Type[BaseActiveLearner]:
     activeLearnerType = ActiveLearnerType[config.getSetting('ActiveLearnerType')]
 
     return ObjectFactory.build(
         BaseActiveLearner,
         activeLearnerType,
+        initDataSet=dataSet,
         config=config
     )
 
-def _getTrainer(trainable: Type[Trainable], config: Config) -> Type[BaseTrainer]:
+def _getTrainer(
+    dataSetId: str,
+    trainable: Type[Trainable],
+    config: Config
+) -> Type[BaseTrainer]:
     trainerType = TrainerType[config.getSetting('TrainerType')]
 
     return ObjectFactory.build(
         BaseTrainer,
         trainerType,
+        dataSetId=dataSetId,
         trainable=trainable,
         config=config
     )
@@ -54,14 +60,14 @@ def main() -> int:
     config: Config = _getConfig()
     dataSet: Type[DataSet] = DataSetBuilder.build(config)
 
-    activeLearner: Type[BaseActiveLearner] = _getActiveLearner(config)
+    activeLearner: Type[BaseActiveLearner] = _getActiveLearner(dataSet, config)
 
     iterResults: Type[IterationResults] = None
     while activeLearner.hasUpdate(dataSet, iterResults):
         dataSet = activeLearner.getUpdate(dataSet, iterResults)
 
         trainable: Type[Trainable] = _getTrainable(dataSet, config)
-        trainer: Type[BaseTrainer] = _getTrainer(trainable, config)
+        trainer: Type[BaseTrainer] = _getTrainer(dataSet.id, trainable, config)
 
         trainer.train()
 

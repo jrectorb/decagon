@@ -12,7 +12,7 @@ import multiprocessing
 import tensorflow as tf
 
 class BaseDecagonTrainer(BaseTrainer, functionalityType=TrainerType.DecagonTrainer):
-    def __init__(self, trainable: DecagonTrainable, config: Config) -> None:
+    def __init__(self, dataSetId: str, trainable: DecagonTrainable, config: Config) -> None:
         self.optimizer = trainable.optimizer
         self.dataSetIterator = trainable.dataSetIterator
         self.placeholders = trainable.placeholders
@@ -21,7 +21,13 @@ class BaseDecagonTrainer(BaseTrainer, functionalityType=TrainerType.DecagonTrain
         self.session: tf.Session = tf.Session(config=tfConf)
 
         checkpointer = TensorflowCheckpointer(trainable, self.session, config)
-        self.logger = DecagonLogger(self.session, trainable, checkpointer, config)
+        self.logger = DecagonLogger(
+            self.session,
+            dataSetId,
+            trainable,
+            checkpointer,
+            config
+        )
 
         self.numEpochs: int = int(config.getSetting('NumEpochs'))
         self.dropoutRate: float = float(config.getSetting('dropout'))
