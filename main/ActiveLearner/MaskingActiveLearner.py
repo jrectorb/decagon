@@ -56,7 +56,7 @@ class RandomMaskingActiveLearner(
 
             preResult.append(np.hstack((graphTypeArr, grid)))
 
-        return np.vstack(preResult)
+        return np.vstack(preResult) if len(preResult) > 0 else np.empty((0, 0))
 
     def hasUpdate(self, dataset, iterResults) -> bool:
         return len(self.possibilities) > 0
@@ -90,7 +90,7 @@ class RandomMaskingActiveLearner(
         idxsToUnmask = itemgetter(*samples)(self.possibilities)
 
         for idx in idxsToUnmask:
-            self.adjMtxMasks[str(idx[0])][idx[1], idx[2]] = 1
+            self.adjMtxMasks[idx[0]][idx[1], idx[2]] = 1
 
         self.possibilities = np.delete(self.possibilities, samples, axis=0)
 

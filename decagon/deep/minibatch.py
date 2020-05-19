@@ -181,6 +181,7 @@ class EdgeMinibatchIterator(object):
                 if self._ismember([idx_i, idx_j], test_edges_false):
                     continue
             test_edges_false.append([idx_i, idx_j])
+            break
 
         val_edges_false = []
         while len(val_edges_false) < len(val_edges):
@@ -194,6 +195,7 @@ class EdgeMinibatchIterator(object):
                 if self._ismember([idx_i, idx_j], val_edges_false):
                     continue
             val_edges_false.append([idx_i, idx_j])
+            break
 
         # Re-build adj matrices
         data = np.ones(train_edges.shape[0])
@@ -204,9 +206,13 @@ class EdgeMinibatchIterator(object):
 
         self.train_edges[edge_type][type_idx] = train_edges
         self.val_edges[edge_type][type_idx] = val_edges
-        self.val_edges_false[edge_type][type_idx] = np.array(val_edges_false)
         self.test_edges[edge_type][type_idx] = test_edges
-        self.test_edges_false[edge_type][type_idx] = np.array(test_edges_false)
+
+        self.val_edges_false[edge_type][type_idx] = \
+            np.array(val_edges_false).reshape((len(val_edges_false), 2))
+
+        self.test_edges_false[edge_type][type_idx] = \
+            np.array(test_edges_false).reshape((len(test_edges_false), 2))
 
     def end(self):
         finished = len(self.freebatch_edge_types) == 0

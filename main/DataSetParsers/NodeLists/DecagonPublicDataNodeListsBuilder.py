@@ -21,6 +21,11 @@ class DecagonPublicDataNodeListsBuilder(
             data=(('relationType', str),)
         )
 
+        self.drugProteinRelationGraph: nx.Graph = nx.read_edgelist(
+            config.getSetting('DecagonDrugProteinRelationsFilename'),
+            delimiter=','
+        )
+
         self.ppiGraph: nx.Graph = nx.read_edgelist(
             config.getSetting('DecagonProteinProteinRelationsFilename'),
             delimiter=','

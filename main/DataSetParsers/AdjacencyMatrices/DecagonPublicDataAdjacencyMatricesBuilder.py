@@ -36,14 +36,14 @@ class DecagonPublicDataAdjacencyMatricesBuilder(
         # When building adjacency matrices with networkx, we can
         # guarantee ordering of the built matrices.  Thus, we precompute
         # them here so they can be used later in the building of the matrices.
-        self.drugNodeList: EdgeList = nodeLists.drugNodes
-        self.proteinNodeList: EdgeList = nodeLists.proteinNodes
+        self.drugNodeList: EdgeList = nodeLists.drugNodeList
+        self.proteinNodeList: EdgeList = nodeLists.proteinNodeList
 
     def build(self) -> AdjacencyMatrices:
         return AdjacencyMatrices(
             drugDrugRelationMtxs=self._buildDrugDrugRelationMtxs(),
             drugProteinRelationMtx=self._buildDrugProteinRelationMtx(),
-            ppiMtx=self._buildPpiMtx(),
+            proteinProteinRelationMtx=self._buildPpiMtx(),
         )
 
     def _buildDrugDrugRelationMtxs(self) -> RelationIDToSparseMtx:
@@ -98,10 +98,10 @@ class DecagonPublicDataAdjacencyMatricesBuilder(
         drugToIdx = {drug: idx for idx, drug in enumerate(self.drugNodeList)}
         proteinToIdx = {protein: idx for idx, protein in enumerate(self.proteinNodeList)}
 
-        drugProteinMtx = np.zeros((len(drugToIdx), len(proteinToIdx)))
+        drugProteinMtx = np.zeros((len(proteinToIdx), len(drugToIdx)))
         for edge in self.drugProteinRelationGraph.edges:
             drug, protein = self._extractDrugProtein(edge)
-            drugProteinMtx[drugToIdx[drug], proteinToIdx[protein]] = 1
+            drugProteinMtx[proteinToIdx[protein], drugToIdx[drug]] = 1
 
         return RelationCsrMatrix(drugProteinMtx)
 
@@ -112,7 +112,7 @@ class DecagonPublicDataAdjacencyMatricesBuilder(
         return edge[drugIdx], edge[proteinIdx]
 
     def _buildPpiMtx(self) -> Type[sp.spmatrix]:
-        self.ppiGraph.add_nodes_from(self._getDrugProteinGraphProteins())
+        self.ppiGraph.add_nodes_from(self.proteinNodeList)
 
         return RelationCsrMatrix(
             nx.adjacency_matrix(self.ppiGraph, nodelist=self.proteinNodeList)

@@ -18,7 +18,7 @@ class DecagonPublicDataNodeFeaturesBuilder(
     functionalityType = DataSetType.DecagonPublicData
 ):
     def __init__(self, nodeLists: NodeLists, config: Config) -> None:
-        self.filename: str = config.getSetting('NodeFeaturesFilename')
+        self.filename: str = config.getSetting('DecagonNodeFeaturesFilename')
         self.drugNodeList: EdgeList = nodeLists.drugNodeList
         self.numProteins: int = len(nodeLists.proteinNodeList)
 
@@ -29,16 +29,16 @@ class DecagonPublicDataNodeFeaturesBuilder(
         )
 
     def _getProteinNodeFeatures(self) -> Type[sp.coo_matrix]:
-        return RelationCooMatrix(sp.identity(self.numProteins, format=sp.coo_matrix))
+        return RelationCooMatrix(sp.identity(self.numProteins, format='coo'))
 
     def _getDrugNodeFeatures(self) -> Type[sp.coo_matrix]:
         drugFeaturesDict = self._getDrugFeaturesDict()
 
-        drugIdToIdx = self._getDrugIdToIdx(drugFeaturesDict.Keys())
-        sideEffectIdToIdx = self._getSideEffectIdToIdx(drugFeaturesDict.Values())
+        drugIdToIdx = self._getDrugIdToIdx()
+        sideEffectIdToIdx = self._getSideEffectIdToIdx(drugFeaturesDict.values())
 
         result = np.zeros((len(drugIdToIdx), len(sideEffectIdToIdx)))
-        for drugId, drugSideEffects in drugFeaturesDict:
+        for drugId, drugSideEffects in drugFeaturesDict.items():
             for sideEffectId in drugSideEffects:
                 if drugId not in drugIdToIdx:
                     continue
@@ -56,10 +56,13 @@ class DecagonPublicDataNodeFeaturesBuilder(
 
         result = defaultdict(list)
         with open(self.filename) as drugFtrsFile:
-            reader = csv.reader(drugFtsFile)
+            reader = csv.reader(drugFtrsFile)
+
+            # Discard header
+            next(reader)
             for row in reader:
                 drugId = DrugId.fromDecagonFormat(row[DRUG_ID_IDX])
-                sideEffectId = SideEffectId.fromDecagonFormat(row[SIDE_EFFECT_ID])
+                sideEffectId = SideEffectId.fromDecagonFormat(row[SIDE_EFFECT_IDX])
 
                 result[drugId].append(sideEffectId)
 
@@ -72,6 +75,6 @@ class DecagonPublicDataNodeFeaturesBuilder(
         self,
         sideEffects: Iterable[List[SideEffectId]]
     ) -> Dict[SideEffectId, int]:
-        uniqueSideEffects = np.unique(np.concatenate(sideEffects))
+        uniqueSideEffects = np.unique(np.concatenate(tuple(sideEffects)))
         return {sideEffect: idx for idx, sideEffect in enumerate(uniqueSideEffects)}
 

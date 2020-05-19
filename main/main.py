@@ -14,12 +14,20 @@ from .Utils.ObjectFactory import ObjectFactory
 
 from typing import Type
 import sys
+import os
 
 def _getConfig() -> Config:
     argParser = ArgParser()
     argParser.parse()
 
     return Config(argParser)
+
+def _setEnvVars(config: Config) -> None:
+    if bool(config.getSetting('UseGpu')):
+        os.environ['CUDA_DEVICE_ORDER'] = 'PCI_BUS_ID'
+        os.environ['CUDA_VISIBLE_DEVICES'] = '0'
+    else:
+        os.environ['CUDA_VISIBLE_DEVICES'] = ''
 
 def _getTrainable(dataSet: Type[DataSet], config: Config) -> Type[Trainable]:
     trainableBuilder = ObjectFactory.build(
@@ -58,6 +66,7 @@ def _getTrainer(
 
 def main() -> int:
     config: Config = _getConfig()
+    _setEnvVars(config)
     dataSet: Type[DataSet] = DataSetBuilder.build(config)
 
     activeLearner: Type[BaseActiveLearner] = _getActiveLearner(dataSet, config)
