@@ -87,7 +87,7 @@ def _hackyMain() -> int:
     from .DataSetParsers.AdjacencyMatrices.HyperglycaemiaAdjMtxBuilder import HyperglycaemiaAdjMtxBuilder
     from .DataSetParsers.AdjacencyMatrices.NeutropeniaAdjMtxBuilder import NeutropeniaAdjMtxBuilder
 
-    #ray.init()
+    ray.init()
 
     config: Config = _getConfig()
     _setEnvVars(config)
@@ -112,8 +112,7 @@ def _hackyMain() -> int:
 
     return 0
 
-
-@ray.remote(num_gpus=0.05, max_calls=1)
+@ray.remote(num_gpus=1, max_calls=1)
 def _doTraining(dataSet: DataSet, config: Config):
     trainable: Type[Trainable] = _getTrainable(dataSet, config)
     trainer: Type[BaseTrainer] = _getTrainer(dataSet.id, trainable, config)
