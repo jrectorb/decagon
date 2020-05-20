@@ -4,7 +4,7 @@ from ..BaseTrainableBuilder import BaseTrainableBuilder
 from ...Dtos.DataSet import DataSet
 from ...Dtos.Enums.TrainableType import TrainableType
 from ...Dtos.IterationResults import IterationResults
-from ...Dtos.Trainable.Trainable import Trainable
+from ...Dtos.Trainable import Trainable
 from ...Utils.Config import Config
 from .decagon.deep.minibatch import EdgeMinibatchIterator
 from .decagon.deep.model import DecagonModel

@@ -7,12 +7,13 @@ from .Dtos.Enums.ActiveLearnerType import ActiveLearnerType
 from .Dtos.Enums.TrainableType import TrainableType
 from .Dtos.Enums.TrainerType import TrainerType
 from .Dtos.IterationResults import IterationResults
-from .Dtos.Trainable.Trainable import Trainable
+from .Dtos.Trainable import Trainable
 from .Utils.ArgParser import ArgParser
 from .Utils.Config import Config
 from .Utils.ObjectFactory import ObjectFactory
 
 from typing import Type
+import ray
 import sys
 import os
 
@@ -72,18 +73,53 @@ def main() -> int:
     activeLearner: Type[BaseActiveLearner] = _getActiveLearner(dataSet, config)
 
     iterResults: Type[IterationResults] = None
+    runningJobs = []
     while activeLearner.hasUpdate(dataSet, iterResults):
         dataSet = activeLearner.getUpdate(dataSet, iterResults)
+        trainingJobs.append(_doTraining.remote(dataSet, config))
 
-        trainable: Type[Trainable] = _getTrainable(dataSet, config)
-        trainer: Type[BaseTrainer] = _getTrainer(dataSet.id, trainable, config)
-
-        trainer.train()
-
-        iterResults = trainable.getIterationResults()
+    ray.get(trainingJobs)
 
     return 0
 
+def _hackyMain() -> int:
+    from .DataSetParsers.AdjacencyMatrices.AnosmiaAdjMtxBuilder import AnosmiaAdjMtxBuilder
+    from .DataSetParsers.AdjacencyMatrices.HyperglycaemiaAdjMtxBuilder import HyperglycaemiaAdjMtxBuilder
+    from .DataSetParsers.AdjacencyMatrices.NeutropeniaAdjMtxBuilder import NeutropeniaAdjMtxBuilder
+
+    #ray.init()
+
+    config: Config = _getConfig()
+    _setEnvVars(config)
+
+    adjMtxTypes = [
+        AnosmiaAdjMtxBuilder,
+        HyperglycaemiaAdjMtxBuilder,
+        NeutropeniaAdjMtxBuilder,
+    ]
+
+    jobs = []
+
+    for adjMtxType in adjMtxTypes:
+        dataSet: Type[DataSet] = DataSetBuilder.build(adjMtxType, config)
+        activeLearner: Type[BaseActiveLearner] = _getActiveLearner(dataSet, config)
+
+        while activeLearner.hasUpdate(dataSet, None):
+            dataSet = activeLearner.getUpdate(dataSet, None)
+            jobs.append(_doTraining.remote(dataSet, config))
+
+    ray.get(jobs)
+
+    return 0
+
+
+@ray.remote(num_gpus=0.05, max_calls=1)
+def _doTraining(dataSet: DataSet, config: Config):
+    trainable: Type[Trainable] = _getTrainable(dataSet, config)
+    trainer: Type[BaseTrainer] = _getTrainer(dataSet.id, trainable, config)
+
+    trainer.train()
+
 if __name__ == '__main__':
-    sys.exit(main())
+    sys.exit(_hackyMain())
 

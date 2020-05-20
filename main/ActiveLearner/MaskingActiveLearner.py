@@ -59,6 +59,7 @@ class RandomMaskingActiveLearner(
         return np.vstack(preResult) if len(preResult) > 0 else np.empty((0, 0))
 
     def hasUpdate(self, dataset, iterResults) -> bool:
+        return 2 ** self.numIters < 100
         return len(self.possibilities) > 0
 
     def getUpdate(self, dataSet, iterResults) -> DataSet:
@@ -76,16 +77,21 @@ class RandomMaskingActiveLearner(
         )
 
     def _updateMask(self):
-        multiplier = self.initUnmaskedProportion if self.numIters == 0 \
-                     else self.proportionUnmaskedPerIter
+        lastNumerator = 2 ** (self.numIters - 1) if self.numIters > 0 else 0
+        thisNumerator = min(2 ** self.numIters, 100)
 
+        multiplier = (thisNumerator - lastNumerator) / 100
         numToUnmask = int(np.floor(self.dataSetSize * multiplier))
 
-        samples = np.random.choice(
-            len(self.possibilities),
-            size=numToUnmask,
-            replace=False
-        )
+        samples = None
+        try:
+            samples = np.random.choice(
+                len(self.possibilities),
+                size=numToUnmask,
+                replace=False
+            )
+        except ValueError:
+            import pdb; pdb.set_trace()
 
         idxsToUnmask = itemgetter(*samples)(self.possibilities)
 

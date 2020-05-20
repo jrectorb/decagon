@@ -1,5 +1,5 @@
 from abc import ABCMeta, abstractmethod
-from ..Dtos.Trainable.Trainable import Trainable
+from ..Dtos.Trainable import Trainable
 from ..Utils.BaseFactorizableClass import BaseFactorizableClass
 from ..Utils.Config import Config
 

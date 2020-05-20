@@ -1,4 +1,4 @@
-from ..IterationResults import IterationResults
+from .IterationResults import IterationResults
 
 class Trainable:
     '''

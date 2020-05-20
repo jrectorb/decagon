@@ -1,5 +1,5 @@
 from .Trainable import Trainable
-from ...Utils.ObjectWalker import ObjectWalker
+from ..Utils.ObjectWalker import ObjectWalker
 from tensorflow.python.training import checkpointable
 
 class TensorflowTrainable(Trainable):

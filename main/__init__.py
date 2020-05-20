@@ -11,7 +11,10 @@ def import_submodules(package, recursive=True):
     :rtype: dict[str, types.ModuleType]
     """
     if isinstance(package, str):
-        package = importlib.import_module(package)
+        try:
+            package = importlib.import_module(package)
+        except ModuleNotFoundError:
+            import pdb; pdb.set_trace()
 
     results = {}
     for loader, name, is_pkg in pkgutil.walk_packages(package.__path__):

@@ -5,11 +5,13 @@ from ...Dtos.NodeLists import NodeLists
 from ...Dtos.TypeShortcuts import EdgeList, RelationIDToEdgeList, RelationIDToGraph, RelationIDToSparseMtx
 from ...Utils import Config
 from ...Utils.Sparse import RelationCsrMatrix
-from typing import Type
+from typing import Type, Tuple
 from collections import defaultdict
 import networkx as nx
 import numpy as np
 import scipy.sparse as sp
+
+Edge = Tuple[str, str, int]
 
 class DecagonPublicDataAdjacencyMatricesBuilder(
     BaseAdjacencyMatricesBuilder,
@@ -75,24 +77,50 @@ class DecagonPublicDataAdjacencyMatricesBuilder(
         return graphs
 
     def _getValidEdgeSets(self) -> RelationIDToEdgeList:
-        RELATION_TYPE_IDX = 2
+        allEdgeSets = self._buildAllEdgeSets()
+        return self._filterEdgeSets(allEdgeSets)
 
-        preResult = defaultdict(list)
+    def _buildAllEdgeSets(self) -> RelationIDToEdgeList:
+        result = defaultdict(list)
         for edge in self.drugDrugRelationGraph.edges:
+            relationId = self._extractRelationId(edge)
+
             # Remove edge type from edge
             truncatedEdge = edge[:2]
-            preResult[edge[RELATION_TYPE_IDX]].append(truncatedEdge)
+            result[relationId].append(truncatedEdge)
 
+        return result
+
+    def _extractRelationId(self, edge: Edge) -> str:
+        FIRST_EDGE_NODE_IDX = 0
+        SCND_EDGE_NODE_IDX  = 1
+        RELATION_TYPE_IDX   = 2
+
+        thisEdgeDict = self.drugDrugRelationGraph.get_edge_data(
+            edge[FIRST_EDGE_NODE_IDX],
+            edge[SCND_EDGE_NODE_IDX]
+        )
+
+        rawRelationId = thisEdgeDict[edge[RELATION_TYPE_IDX]]['relationType']
+
+        # First element of the relation ID str is a 'C'.  Return an int which
+        # excludes this 'C'.
+        return int(rawRelationId[1:])
+
+    def _filterEdgeSets(
+        self,
+        allEdgeSets: RelationIDToEdgeList
+    ) -> RelationIDToEdgeList:
         result = {}
         # Filter out edge types that don't have 500
-        for edgeType, edgeList in preResult.items():
+        for edgeType, edgeList in allEdgeSets.items():
             if self._isEdgeListValid(edgeList):
                 result[edgeType] = edgeList
 
         return result
 
     def _isEdgeListValid(self, edgeList: EdgeList) -> bool:
-        return len(edgeList) >= 500
+        return len(edgeList) >= 15
 
     def _buildDrugProteinRelationMtx(self) -> Type[sp.csr_matrix]:
         drugToIdx = {drug: idx for idx, drug in enumerate(self.drugNodeList)}
