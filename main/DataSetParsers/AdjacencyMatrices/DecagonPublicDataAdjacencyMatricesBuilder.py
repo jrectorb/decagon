@@ -1,7 +1,7 @@
 from .BaseAdjacencyMatricesBuilder import BaseAdjacencyMatricesBuilder
 from ...Dtos.AdjacencyMatrices import AdjacencyMatrices
 from ...Dtos.Enums.DataSetType import DataSetType
-from ...Dtos.NodeIds import DrugId, ProteinId
+from ...Dtos.NodeIds import DrugId, ProteinId, BaseNodeId
 from ...Dtos.NodeLists import NodeLists
 from ...Dtos.TypeShortcuts import EdgeList, RelationIDToEdgeList, RelationIDToGraph, RelationIDToSparseMtx
 from ...Utils import Config
@@ -23,6 +23,7 @@ class DecagonPublicDataAdjacencyMatricesBuilder(
             config.getSetting('DecagonDrugDrugRelationsFilename'),
             delimiter=',',
             create_using=nx.MultiGraph(),
+            nodetype=DrugId,
             data=(('relationType', str),)
         )
 
@@ -33,6 +34,7 @@ class DecagonPublicDataAdjacencyMatricesBuilder(
 
         self.ppiGraph: nx.Graph = nx.read_edgelist(
             config.getSetting('DecagonProteinProteinRelationsFilename'),
+            nodetype=ProteinId,
             delimiter=','
         )
 

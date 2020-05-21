@@ -1,5 +1,6 @@
 from typing import Type
 import scipy.sparse as sp
+import os
 
 class RelationCooMatrix(sp.coo_matrix):
     _numMtxsCreated = 0
@@ -12,7 +13,7 @@ class RelationCooMatrix(sp.coo_matrix):
         # A reference to the transposed matrix
         self.transposedMtxLink: RelationCooMatrix = None
 
-        self.id = "RelationCooMatrix|%d" % RelationCooMatrix._numMtxsCreated
+        self.id = "RelationCooMatrix|%d|%d" % (os.getpid(), RelationCooMatrix._numMtxsCreated)
         RelationCooMatrix._numMtxsCreated += 1
 
     def transpose(self, axes=None, copy=False, setId=False) -> Type['RelationCooMatrix']:
@@ -47,7 +48,7 @@ class RelationCsrMatrix(sp.csr_matrix):
         # A reference to the transposed matrix
         self.transposedMtxLink: RelationCsrMatrix = None
 
-        self.id = "RelationCsrMatrix|%d" % RelationCsrMatrix._numMtxsCreated
+        self.id = "RelationCooMatrix|%d|%d" % (os.getpid(), RelationCooMatrix._numMtxsCreated)
         RelationCsrMatrix._numMtxsCreated += 1
 
     def transpose(self, axes=None, copy=False, setId=False) -> Type['RelationCsrMatrix']:
