@@ -206,5 +206,5 @@ def _doTraining(dataSet: DataSet, config: Config):
     return
 
 if __name__ == '__main__':
-    sys.exit(_hackyMain())
+    sys.exit(_newHackyMain())
 
