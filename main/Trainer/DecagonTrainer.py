@@ -79,6 +79,7 @@ class BaseDecagonTrainer(BaseTrainer, functionalityType=TrainerType.DecagonTrain
         In the result dict, keys are tf.placeholder objects while result
         types may vary
         '''
+        import pdb; pdb.set_trace()
         preResult = self.dataSetIterator.next_minibatch_feed_dict(self.placeholders)
 
         return self.dataSetIterator.update_feed_dict(

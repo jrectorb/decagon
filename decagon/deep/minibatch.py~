@@ -103,7 +103,6 @@ class EdgeMinibatchIterator(object):
 
     def mask_test_edges(self, edge_type, type_idx):
         mtx = self.adj_mats[edge_type][type_idx]
-        import pdb; pdb.set_trace()
 
         if mtx.isTranspose and self._test_edges_exist_tposed_mtx(mtx):
             return self._mask_test_edges_from_tpose(edge_type, type_idx, mtx)

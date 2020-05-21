@@ -48,7 +48,6 @@ class DecagonPublicDataNodeFeaturesBuilder(
 
                 result[drugIdx, sideEffectIdx] = 1
 
-        import pdb; pdb.set_trace()
         return RelationCooMatrix(result)
 
     def _getDrugFeaturesDict(self) -> DrugFeaturesDict:
