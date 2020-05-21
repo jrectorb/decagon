@@ -35,8 +35,8 @@ class ArgParser:
 
     def _addArgs(self) -> None:
         # TODO: Must add all arguments!
-        pass
-        #self.parser.add_argument()
+        self.parser.add_argument('--config')
+        self.parser.add_argument('--fxn-call-type')
 
     def parse(self) -> None:
         self.args = self.parser.parse_args()

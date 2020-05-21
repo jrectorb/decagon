@@ -14,7 +14,7 @@ class Config:
             self.confJson: Dict[str, str] = json.load(f)
 
     def _getConfFilename(self) -> str:
-        if hasattr(self.argParserObj, 'config'):
+        if hasattr(self.argParserObj.args, 'config'):
             return self.argParserObj.getKey('config')
         else:
             return Config.CONF_FILE_PATH
