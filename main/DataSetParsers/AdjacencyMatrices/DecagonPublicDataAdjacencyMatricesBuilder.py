@@ -53,9 +53,8 @@ class DecagonPublicDataAdjacencyMatricesBuilder(
         graphs = self._getDrugDrugRelationGraphs(validEdgeSets)
 
         adjMtxs = {
-            relID: nx.adjacency_matrix(
-                graph,
-                nodelist=self.drugNodeList
+            relID: RelationCsrMatrix(
+                nx.adjacency_matrix(graph, nodelist=self.drugNodeList)
             ) for relID, graph in graphs.items()
         }
 

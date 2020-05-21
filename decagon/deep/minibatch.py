@@ -271,8 +271,6 @@ class EdgeMinibatchIterator(object):
         start = self.batch_num[self.current_edge_type_idx] * self.batch_size
         self.batch_num[self.current_edge_type_idx] += 1
         batch_edges = self.train_edges[i,j][k][start: start + self.batch_size]
-        if start + self.batch_size > self.train_edges[i,j][k].shape[0]:
-            import pdb; pdb.set_trace()
         return self.batch_feed_dict(batch_edges, self.current_edge_type_idx, placeholders)
 
     def num_training_batches(self, edge_type, type_idx):

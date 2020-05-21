@@ -17,14 +17,24 @@ class DecagonTrainableBuilder(
     BaseTrainableBuilder,
     functionalityType=TrainableType.DecagonTrainable
 ):
-    def __init__(self, dataSet: DataSet, config: Config) -> None:
-        self.dataSet: DecagonDataSet = DecagonDataSet.fromDataSet(dataSet, config)
+    def __init__(
+        self,
+        dataSet: DataSet,
+        config: Config,
+        decagonDataSet: DecagonDataSet = None
+    ) -> None:
+        self.dataSet: DecagonDataSet = None
+        if decagonDataSet is not None:
+            self.dataSet = decagonDataSet
+        else:
+            self.dataSet = DecagonDataSet.fromDataSet(dataSet, config)
+
         self.config: Config = config
 
     def build(self) -> Type[Trainable]:
-        dataSetIterator = self._getDataSetIterator()
-        model = self._getModel()
-        optimizer = self._getOptimizer(model)
+        dataSetIterator = self.getDataSetIterator()
+        model = self.getModel()
+        optimizer = self.getOptimizer(model)
 
         return DecagonTrainable(
             dataSetIterator,
@@ -33,7 +43,7 @@ class DecagonTrainableBuilder(
             self.dataSet.placeholdersDict
         )
 
-    def _getDataSetIterator(self) -> EdgeMinibatchIterator:
+    def getDataSetIterator(self) -> EdgeMinibatchIterator:
         return EdgeMinibatchIterator(
             self.dataSet.adjacencyMatrixDict,
             self.dataSet.featuresDict,
@@ -42,7 +52,7 @@ class DecagonTrainableBuilder(
             float(self.config.getSetting('ValidationSetProportion')),
         )
 
-    def _getModel(self) -> DecagonModel:
+    def getModel(self) -> DecagonModel:
         FEATURE_TPL_MTX_IDX   = 1
         FEATURE_TPL_SHAPE_IDX = 2
 
@@ -64,7 +74,7 @@ class DecagonTrainableBuilder(
             self.dataSet.edgeTypeDecoderDict,
         )
 
-    def _getOptimizer(self, model: DecagonModel) -> DecagonOptimizer:
+    def getOptimizer(self, model: DecagonModel) -> DecagonOptimizer:
         optimizer = None
         with tf.name_scope('optimizer'):
             optimizer = DecagonOptimizer(

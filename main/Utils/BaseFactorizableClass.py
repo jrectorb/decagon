@@ -17,7 +17,7 @@ class BaseFactorizableClass(metaclass=ABCMeta):
 
     classes: ClassesDictType = {}
 
-    def __init_subclass__(cls, functionalityType: Type[Enum], **kwargs) -> None:
+    def __init_subclass__(cls, functionalityType: Type[Enum] = None, **kwargs) -> None:
         super().__init_subclass__(**kwargs)
 
         print(cls)

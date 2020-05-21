@@ -34,7 +34,7 @@ class DataSetBuilder:
 
     # Hacky here...
     @staticmethod
-    def build(adjMtxType, config):
+    def buildForMtxType(adjMtxType, config):
         dataSetType = DataSetType[config.getSetting('DataSetType')]
 
         idStr = "Base%sDataSet%s" % (dataSetType.name, adjMtxType.__name__)

@@ -60,7 +60,6 @@ class RandomMaskingActiveLearner(
 
     def hasUpdate(self, dataset, iterResults) -> bool:
         return 2 ** self.numIters < 100
-        return len(self.possibilities) > 0
 
     def getUpdate(self, dataSet, iterResults) -> DataSet:
         self._updateMask()
@@ -83,24 +82,22 @@ class RandomMaskingActiveLearner(
         multiplier = (thisNumerator - lastNumerator) / 100
         numToUnmask = int(np.floor(self.dataSetSize * multiplier))
 
-        samples = None
-        try:
-            samples = np.random.choice(
-                len(self.possibilities),
-                size=numToUnmask,
-                replace=False
-            )
-        except ValueError:
-            import pdb; pdb.set_trace()
-
-        idxsToUnmask = itemgetter(*samples)(self.possibilities)
-
+        idxsToUnmask = self._getNewSampleIdxs(numToUnmask)
         for idx in idxsToUnmask:
             self.adjMtxMasks[idx[0]][idx[1], idx[2]] = 1
 
-        self.possibilities = np.delete(self.possibilities, samples, axis=0)
+        self.possibilities = np.delete(self.possibilities, idxsToUnmask, axis=0)
 
         return
+
+    def _getNewSampleIdxs(self, numToUnmask: int):
+        samples = np.random.choice(
+            len(self.possibilities),
+            size=numToUnmask,
+            replace=False
+        )
+
+        return itemgetter(*samples)(self.possibilities)
 
     def _applyMask(self):
         drugDrugRelationMtxs = {}

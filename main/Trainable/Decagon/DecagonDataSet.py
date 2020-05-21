@@ -131,6 +131,8 @@ class DecagonDataSet:
                 defFxn = flags.DEFINE_float
             elif typeToDef == bool:
                 defFxn = flags.DEFINE_boolean
+            elif typeToDef == str:
+                defFxn = flags.DEFINE_string
             else:
                 raise TypeError('Invalid type')
 
@@ -147,6 +149,16 @@ class DecagonDataSet:
             defVal('max_margin', 'Max margin parameter in hinge loss', float)
             defVal('batch_size', 'Minibatch size.', int)
             defVal('bias', 'Bias term.', bool)
+
+            # For compatibility with ray
+            flags.DEFINE_string('node-ip-address', '', 'RayCompat')
+            flags.DEFINE_string('node-manager-port', '', 'RayCompat')
+            flags.DEFINE_string('object-store-name', '', 'RayCompat')
+            flags.DEFINE_string('raylet-name', '', 'RayCompat')
+            flags.DEFINE_string('redis-address', '', 'RayCompat')
+            flags.DEFINE_string('config-list', '', 'RayCompat')
+            flags.DEFINE_string('temp-dir', '', 'RayCompat')
+            flags.DEFINE_string('redis-password', '', 'RayCompat')
 
             DecagonDataSet.HaveDefinedFlags = True
 

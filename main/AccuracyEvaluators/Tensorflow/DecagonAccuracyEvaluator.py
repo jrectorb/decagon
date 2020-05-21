@@ -6,6 +6,7 @@ from typing import Dict, List, Iterable, Tuple, Type
 from sklearn import metrics
 import tensorflow as tf
 import numpy as np
+import math
 
 # A 2-tuple representing an indexing into an M x N matrix
 Coordinate = Tuple[int, int]
@@ -72,8 +73,19 @@ class DecagonAccuracyEvaluator:
         drugRels = filter(lambda x: x[:2] == (1, 1), self.relCoordToIdx.keys())
         lossElements = LossElementsContainer.reduce(list(map(doEval, drugRels)))
 
-        auroc = metrics.roc_auc_score(lossElements.labels, lossElements.predictions)
-        auprc = metrics.average_precision_score(lossElements.labels, lossElements.predictions)
+        auroc = math.nan
+        auprc = math.nan
+
+        try:
+            auroc = metrics.roc_auc_score(lossElements.labels, lossElements.predictions)
+        except ValueError:
+            pass
+
+        try:
+            auprc = metrics.average_precision_score(lossElements.labels, lossElements.predictions)
+        except ValueError:
+            pass
+
         apk   = 0 #self._computeApk(lossElements)
 
         return AccuracyScores(auroc, auprc, apk)
@@ -148,6 +160,9 @@ class DecagonAccuracyEvaluator:
             predictions.shape[COL_SHAPE_IDX]
         )
 
+        import os
+        print('for pid %d, preds type: %s, sampleIdxs type: %s' % (os.getpid(), predictions.dtype, linearizedSampleIdxs.dtype))
+
         # np.take here is equivalent to predictions.ravel()[linearizedSampleIdxs]
         return np.take(predictions, linearizedSampleIdxs)
 
@@ -164,6 +179,9 @@ class DecagonAccuracyEvaluator:
         relationType = relCoord[2]
 
         twoDimSampleIndexes = edgeSamples[subGraphType][relationType]
+
+        if not np.issubdtype(twoDimSampleIndexes.dtype, np.integer):
+            twoDimSampleIndexes = twoDimSampleIndexes.astype(np.int64)
 
         return (twoDimSampleIndexes[:, 0] * numCols) + twoDimSampleIndexes[:, 1]
 

@@ -147,6 +147,8 @@ class DecagonLogger(BaseLogger, functionalityType=LoggerType.DecagonLogger):
         iterString  = self._getString(iterationResults, accuracyScores, evalAll)
 
         self.trainResultWriter.writerow(iterRowDict)
+        self.trainResultLogFile.flush()
+
         print(iterString)
 
         return

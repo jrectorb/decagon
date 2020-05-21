@@ -19,6 +19,8 @@ class TensorflowCheckpointer(BaseCheckpointer):
     ) -> None:
         super().__init__(config)
 
+        self.shouldEverCheckpoint = bool(config.getSetting('ShouldCheckpoint'))
+
         self.checkpoint: tf.train.Checkpoint = \
             tfe.Checkpoint(**trainable.checkpointDict)
 
@@ -81,10 +83,16 @@ class TensorflowCheckpointer(BaseCheckpointer):
         return isFile and isGoodPrefix
 
     def save(self):
+        if not self.shouldEverCheckpoint:
+            return
+
         newFname = self.ckptDir + self._getCkptName(isNew=True)
         self.checkpoint.save(newFname, session=self.session)
 
     def restore(self):
+        if not self.shouldEverCheckpoint:
+            return
+
         someCkptExists = self._getCurrFnameIdx() != -1
         currFname = self._getCkptName(isNew=False)
 
