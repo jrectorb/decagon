@@ -97,20 +97,18 @@ def _hackyMain() -> int:
     _setEnvVars(config)
 
     adjMtxTypes = [
-        #AnosmiaAdjMtxBuilder,
+        AnosmiaAdjMtxBuilder,
         HyperglycaemiaAdjMtxBuilder,
-        #NeutropeniaAdjMtxBuilder,
+        NeutropeniaAdjMtxBuilder,
     ]
 
     jobs = []
 
-    #import pdb; pdb.set_trace()
     for adjMtxType in adjMtxTypes:
         dataSet: Type[DataSet] = DataSetBuilder.buildForMtxType(adjMtxType, config)
         activeLearner: Type[BaseActiveLearner] = _getActiveLearner(dataSet, config)
 
-        #for _ in range(8):
-        for _ in range(1):
+        for _ in range(8):
             dataSet = activeLearner.getUpdate(dataSet, None)
             jobs.append(_doTraining.remote(dataSet, config))
 
@@ -130,8 +128,8 @@ def _newHackyMain() -> int:
 
     adjMtxTypes = [
         AnosmiaAdjMtxBuilder,
-        HyperglycaemiaAdjMtxBuilder,
-        NeutropeniaAdjMtxBuilder,
+        #HyperglycaemiaAdjMtxBuilder,
+        #NeutropeniaAdjMtxBuilder,
     ]
 
     objs = [

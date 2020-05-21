@@ -64,7 +64,7 @@ class RandomMaskingActiveLearner(
     def getUpdate(self, dataSet, iterResults) -> DataSet:
         self._updateMask()
 
-        idStr = "RandomPolicy%sIter%d" % (self.initDataSet.id, self.numIters)
+        idStr = "%s%sIter%d" % (type(self).__name__, self.initDataSet.id, self.numIters)
         adjMtxs = self._applyMask()
 
         self.numIters += 1
