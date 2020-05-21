@@ -159,7 +159,7 @@ class DecagonDataSet:
             flags.DEFINE_string('config-list', '', 'RayCompat')
             flags.DEFINE_string('temp-dir', '', 'RayCompat')
             flags.DEFINE_string('redis-password', '', 'RayCompat')
-            flags.DEFINE_string('use-pickle', '', 'RayCompat')
+            flags.DEFINE_boolean('use-pickle', False, 'RayCompat')
 
             DecagonDataSet.HaveDefinedFlags = True
 

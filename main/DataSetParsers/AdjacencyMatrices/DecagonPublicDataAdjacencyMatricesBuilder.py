@@ -50,6 +50,7 @@ class DecagonPublicDataAdjacencyMatricesBuilder(
         )
 
     def _buildDrugDrugRelationMtxs(self) -> RelationIDToSparseMtx:
+        import pdb; pdb.set_trace()
         validEdgeSets = self._getValidEdgeSets()
         graphs = self._getDrugDrugRelationGraphs(validEdgeSets)
 
@@ -143,6 +144,7 @@ class DecagonPublicDataAdjacencyMatricesBuilder(
         )
 
     def _buildPpiMtx(self) -> Type[sp.spmatrix]:
+        import pdb; pdb.set_trace()
         self.ppiGraph.add_nodes_from(self.proteinNodeList)
 
         return RelationCsrMatrix(
