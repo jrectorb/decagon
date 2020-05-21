@@ -1,6 +1,7 @@
 from .BaseAdjacencyMatricesBuilder import BaseAdjacencyMatricesBuilder
 from ...Dtos.AdjacencyMatrices import AdjacencyMatrices
 from ...Dtos.Enums.DataSetType import DataSetType
+from ...Dtos.NodeIds import DrugId, ProteinId
 from ...Dtos.NodeLists import NodeLists
 from ...Dtos.TypeShortcuts import EdgeList, RelationIDToEdgeList, RelationIDToGraph, RelationIDToSparseMtx
 from ...Utils import Config
@@ -136,7 +137,10 @@ class DecagonPublicDataAdjacencyMatricesBuilder(
         drugIdx = 0 if edge[0][:3] == 'CID' else 1
         proteinIdx = 1 - drugIdx
 
-        return edge[drugIdx], edge[proteinIdx]
+        return (
+            DrugId.fromDecagonFormat(edge[drugIdx]),
+            ProteinId.fromDecagonFormat(edge[proteinIdx])
+        )
 
     def _buildPpiMtx(self) -> Type[sp.spmatrix]:
         self.ppiGraph.add_nodes_from(self.proteinNodeList)

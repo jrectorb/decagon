@@ -1,6 +1,7 @@
 from .BaseNodeListsBuilder import BaseNodeListsBuilder
 from ...Dtos.Enums.DataSetType import DataSetType
 from ...Dtos.NodeLists import NodeLists
+from ...Dtos.NodeIds import DrugId, SideEffectId, ProteinId
 from ...Dtos.TypeShortcuts import EdgeList, RelationIDToEdgeList, RelationIDToGraph, RelationIDToSparseMtx
 from ...Utils import Config
 from collections import defaultdict
@@ -42,7 +43,7 @@ class DecagonPublicDataNodeListsBuilder(
             self.drugDrugRelationGraph.nodes
         ).union(set(self._getDrugProteinGraphDrugs()))
 
-        return sorted(list(allDrugs))
+        return sorted(list(map(DrugId.fromDecagonFormat, allDrugs)))
 
     def _getDrugProteinGraphDrugs(self) -> Iterator[tuple]:
         # In preprocessed dataset, all drug identifiers are prefixed with 'CID'
@@ -57,7 +58,7 @@ class DecagonPublicDataNodeListsBuilder(
             self.ppiGraph.nodes
         ).union(set(self._getDrugProteinGraphProteins()))
 
-        return sorted(list(allProteins))
+        return sorted(list(map(ProteinId.fromDecagonFormat, allProteins)))
 
     def _getDrugProteinGraphProteins(self) -> Iterator[tuple]:
         # In preprocessed dataset, all drug identifiers are prefixed with 'CID'

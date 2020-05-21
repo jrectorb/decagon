@@ -206,7 +206,7 @@ def _doTraining(dataSet: DataSet, config: Config):
     return
 
 if __name__ == '__main__':
-    if len(sys.argv) == 5 and isinstance(sys.argv[4], int) and int(sys.argv[4]) == 0:
+    if sys.argv[-1].isdigit() and int(sys.argv[-1]) == 0:
         sys.exit(_newHackyMain())
     else:
         sys.exit(_hackyMain())
