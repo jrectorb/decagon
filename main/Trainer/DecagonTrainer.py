@@ -42,6 +42,10 @@ class BaseDecagonTrainer(BaseTrainer, functionalityType=TrainerType.DecagonTrain
         return result
 
     def train(self):
+        '''
+        In case any later processing needs it, this returns the last feed dict
+        used.
+        '''
         self.session.run(tf.global_variables_initializer())
 
         feedDict = None
@@ -57,7 +61,7 @@ class BaseDecagonTrainer(BaseTrainer, functionalityType=TrainerType.DecagonTrain
 
             self.logger.logEpochEnd(feedDict, iterResults)
 
-        return
+        return feedDict
 
     def _trainBatch(self, feedDict: Dict) -> DecagonTrainingIterationResults:
         tic = time.time()

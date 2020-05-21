@@ -20,6 +20,7 @@ class DecagonOptimizer(object):
         self.neg_sample_weights = neg_sample_weights
         self.batch_size = batch_size
 
+        self.placeholders = placeholders
         self.inputs = placeholders['batch']
         self.batch_edge_type_idx = placeholders['batch_edge_type_idx']
         self.batch_row_edge_type = placeholders['batch_row_edge_type']

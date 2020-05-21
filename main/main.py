@@ -35,7 +35,7 @@ def _getTrainable(dataSet: Type[DataSet], config: Config) -> Type[Trainable]:
         BaseTrainableBuilder,
         TrainableType[config.getSetting('TrainableType')],
         dataSet=dataSet,
-        config=config
+        config=config,
     )
 
     return trainableBuilder.build()
@@ -91,26 +91,28 @@ def _hackyMain() -> int:
     from .DataSetParsers.AdjacencyMatrices.HyperglycaemiaAdjMtxBuilder import HyperglycaemiaAdjMtxBuilder
     from .DataSetParsers.AdjacencyMatrices.NeutropeniaAdjMtxBuilder import NeutropeniaAdjMtxBuilder
 
-    ray.init()
+    ray.init()#local_mode=True)
 
     config: Config = _getConfig()
     _setEnvVars(config)
 
     adjMtxTypes = [
-        AnosmiaAdjMtxBuilder,
+        #AnosmiaAdjMtxBuilder,
         HyperglycaemiaAdjMtxBuilder,
-        NeutropeniaAdjMtxBuilder,
+        #NeutropeniaAdjMtxBuilder,
     ]
 
     jobs = []
 
+    #import pdb; pdb.set_trace()
     for adjMtxType in adjMtxTypes:
         dataSet: Type[DataSet] = DataSetBuilder.buildForMtxType(adjMtxType, config)
         activeLearner: Type[BaseActiveLearner] = _getActiveLearner(dataSet, config)
 
-        while activeLearner.hasUpdate(dataSet, None):
+        #for _ in range(8):
+        for _ in range(1):
             dataSet = activeLearner.getUpdate(dataSet, None)
-            jobs.extend(_doTraining.remote(dataSet, config))
+            jobs.append(_doTraining.remote(dataSet, config))
 
     ray.get(jobs)
 
@@ -128,14 +130,39 @@ def _newHackyMain() -> int:
 
     adjMtxTypes = [
         AnosmiaAdjMtxBuilder,
-        #HyperglycaemiaAdjMtxBuilder,
-        #NeutropeniaAdjMtxBuilder,
+        HyperglycaemiaAdjMtxBuilder,
+        NeutropeniaAdjMtxBuilder,
     ]
 
     objs = [
         _doTrainingGreedy.remote(adjMtxType, config)
         for adjMtxType in adjMtxTypes
     ]
+
+    #from .ActiveLearner.GreedyActiveLearner import GreedyActiveLearner
+    #for adjMtxType in adjMtxTypes:
+    #    dataSet: Type[DataSet] = DataSetBuilder.buildForMtxType(adjMtxType, config)
+    #    activeLearner: Type[BaseActiveLearner] = GreedyActiveLearner(dataSet, config)
+
+    #    trainable = None
+    #    trainer = None
+    #    predTensor = None
+    #    lastUsedFeedDict = None
+    #    for _ in range(7):
+    #        dataSet = activeLearner.getUpdate(
+    #            predTensor,
+    #            trainable.optimizer.placeholders if trainable else None,
+    #            lastUsedFeedDict,
+    #            trainer.session if trainer else None,
+    #            dataSet,
+    #            None
+    #        )
+
+    #        trainable: Type[Trainable] = _getTrainable(dataSet, config)
+    #        trainer: Type[BaseTrainer] = _getTrainer(dataSet.id, trainable, config)
+
+    #        lastUsedFeedDict = trainer.train()
+    #        predTensor = trainable.optimizer.predictions
 
     ray.get(objs)
 
@@ -150,13 +177,21 @@ def _doTrainingGreedy(adjMtxType, config):
     trainable = None
     trainer = None
     predTensor = None
-    for _ in range(7):
-        dataSet = activeLearner.getUpdate(predTensor, dataSet, None)
+    lastUsedFeedDict = None
+    for _ in range(8):
+        dataSet = activeLearner.getUpdate(
+            predTensor,
+            trainable.optimizer.placeholders if trainable else None,
+            lastUsedFeedDict,
+            trainer.session if trainer else None,
+            dataSet,
+            None
+        )
 
         trainable: Type[Trainable] = _getTrainable(dataSet, config)
         trainer: Type[BaseTrainer] = _getTrainer(dataSet.id, trainable, config)
 
-        trainer.train()
+        lastUsedFeedDict = trainer.train()
         predTensor = trainable.optimizer.predictions
 
     return
@@ -168,13 +203,8 @@ def _doTraining(dataSet: DataSet, config: Config):
 
     trainer.train()
 
-    rayTfVarsContainer = ray.experimental.tf_utils.TensorFlowVariables(
-        trainable.optimizer.predictions,
-        trainer.session
-    )
-
-    return rayTfVarsContainer.get_weights()
+    return
 
 if __name__ == '__main__':
-    sys.exit(_newHackyMain())
+    sys.exit(_hackyMain())
 

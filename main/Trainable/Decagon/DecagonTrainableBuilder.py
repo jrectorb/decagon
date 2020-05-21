@@ -21,13 +21,17 @@ class DecagonTrainableBuilder(
         self,
         dataSet: DataSet,
         config: Config,
-        decagonDataSet: DecagonDataSet = None
+        decagonDataSet: DecagonDataSet = None,
+        placeholdersDict=None
     ) -> None:
         self.dataSet: DecagonDataSet = None
         if decagonDataSet is not None:
             self.dataSet = decagonDataSet
         else:
             self.dataSet = DecagonDataSet.fromDataSet(dataSet, config)
+
+        self.placeholdersDict = \
+            placeholdersDict if placeholdersDict is not None else self.dataSet.placeholdersDict
 
         self.config: Config = config
 

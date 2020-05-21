@@ -6,6 +6,7 @@ from ..Utils import MathUtils
 from typing import Dict, Tuple, List
 
 import tensorflow as tf
+import numpy as np
 
 RelationCoordinate = Tuple[int, int, int]
 EdgeTypeToIdx = Dict[RelationCoordinate, int]
@@ -15,18 +16,28 @@ COL_SHAPE_IDX = 1
 class GreedyActiveLearner(RandomMaskingActiveLearner, functionalityType=None):
     def __init__(self, initDataSet, config):
         self.session: tf.Session = tf.Session()
-        self.placeholdersDict: PlaceholdersDict = self._constructPlaceholders()
 
-        decagonDataSet = DecagonDataSet.fromDataSet(initDataSet, config)
-        self.edgeTypeToIdx = self._constructEdgeTypeToIdx(decagonDataSet, config)
+        self.decagonDataSet = DecagonDataSet.fromDataSet(initDataSet, config)
+        self.edgeTypeToIdx = self._constructEdgeTypeToIdx(self.decagonDataSet, config)
 
         self.predictionsTensor = None
+        self.placeholdersDict = None
+        self.feedDict = None
 
         super().__init__(initDataSet, config)
 
-    def getUpdate(self, predsTensor, dataSet, iterResults):
+    def getUpdate(self, predsTensor, placeholders, feedDict, session, dataSet, iterResults):
         if predsTensor is not None:
             self.predictionsTensor = predsTensor
+
+        if placeholders is not None:
+            self.placeholdersDict = placeholders
+
+        if feedDict is not None:
+            self.feedDict = feedDict
+
+        if session is not None:
+            self.session = session
 
         return super().getUpdate(dataSet, iterResults)
 
@@ -52,39 +63,25 @@ class GreedyActiveLearner(RandomMaskingActiveLearner, functionalityType=None):
 
         return result
 
-    def _constructPlaceholders(self) -> PlaceholdersDict:
-        return {
-            'dropout': tf.placeholder_with_default(0., shape=()),
-            'batch_edge_type_idx': tf.placeholder(
-                tf.int32,
-                shape=(),
-                name='batch_edge_type_idx'
-            ),
-            'batch_row_edge_type': tf.placeholder(
-                tf.int32,
-                shape=(),
-                name='batch_row_edge_type'
-            ),
-            'batch_col_edge_type': tf.placeholder(
-                tf.int32,
-                shape=(),
-                name='batch_col_edge_type'
-            ),
-        }
-
     def _getNewSampleIdxs(self, numToUnmask: int) -> List[Tuple[int, int, int]]:
         # If no iterations happened yet, just pick a random unmask set
-        if self.numIters == 0:
+        if self.numIters == 0 or self._noRelsExist():
             return super()._getNewSampleIdxs(numToUnmask)
 
-        feedDict = self._getFeedDict()
-        decoderOutput = self.session.run(self.predictionsTensor, feed_dict=feedDict)
+        self._updateFeedDict()
+        decoderOutput = self.session.run(self.predictionsTensor, feed_dict=self.feedDict)
         predictions = MathUtils.sigmoid(decoderOutput)
 
         rankedPossibilities = self._getRankedPossibilities(predictions)
         bestPossibilityIdxs = rankedPossibilities[:numToUnmask]
 
         return self.possibilities[bestPossibilityIdxs]
+
+    def _noRelsExist(self):
+        return all((
+            mtx.sum() == 0
+            for mtx in self.decagonDataSet.adjacencyMatrixDict[(1, 1)]
+        ))
 
     def _getRankedPossibilities(self, predictions):
         linearPossibilityIdxs = self._linearizeIndices(
@@ -98,13 +95,9 @@ class GreedyActiveLearner(RandomMaskingActiveLearner, functionalityType=None):
     def _linearizeIndices(self, indexMtx, numCols):
         return (indexMtx[:, 1] * numCols) + indexMtx[:, 2]
 
-    def _getFeedDict(self) -> Dict:
-        feedDict = {}
-
-        feedDict[self.placeholdersDict['dropout']] = 0
-        feedDict[self.placeholdersDict['batch_edge_type_idx']] = self.edgeTypeToIdx[(1,1,0)]
-        feedDict[self.placeholdersDict['batch_row_edge_type']] = 1
-        feedDict[self.placeholdersDict['batch_col_edge_type']] = 1
-
-        return
+    def _updateFeedDict(self) -> Dict:
+        self.feedDict[self.placeholdersDict['dropout']] = 0
+        self.feedDict[self.placeholdersDict['batch_edge_type_idx']] = self.edgeTypeToIdx[(1,1,0)]
+        self.feedDict[self.placeholdersDict['batch_row_edge_type']] = 1
+        self.feedDict[self.placeholdersDict['batch_col_edge_type']] = 1
 
