@@ -97,19 +97,17 @@ class RandomMaskingActiveLearner(
             mtx.shape
         )
 
-        numPos = max(1, int(allPosEdges.shape[0] * self.testSetProportion)) \
-                 if allPosEdges.shape[0] > 0 else 0
+        numEdges = max(1, int(allPosEdges.shape[0] * self.testSetProportion)) \
+                   if allPosEdges.shape[0] > 0 else 0
         linearizedPosTestEdgeIdxs = self._sampleIndicesLinear(
             allPosEdges,
-            numPos,
+            numEdges,
             mtx.shape[1]
         )
 
-        numNeg = max(1, int(allNegEdges.shape[0] * self.testSetProportion)) \
-                 if allNegEdges.shape[0] > 0 else 0
         linearizedNegTestEdgeIdxs = self._sampleIndicesLinear(
             allNegEdges,
-            numNeg,
+            numEdges,
             mtx.shape[1]
         )
 
