@@ -75,7 +75,7 @@ class GreedyActiveLearner(RandomMaskingActiveLearner, functionalityType=None):
         rankedPossibilities = self._getRankedPossibilities(predictions)
         bestPossibilityIdxs = rankedPossibilities[:numToUnmask]
 
-        return self.possibilities[bestPossibilityIdxs]
+        return bestPossibilityIdxs
 
     def _noRelsExist(self):
         return all((

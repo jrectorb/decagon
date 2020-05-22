@@ -25,7 +25,7 @@
     "max_margin": 0.1,
     "batch_size": 512,
     "bias": true,
-    "ValidationSetProportion": 0.05,
+    "TestSetProportion": 0.1,
     "NumIterationsPerLog": 1,
     "NumIterationsPerCheckpoint": 300,
     "CheckpointDirectory": "/Users/jarridr/repos/decagon/ckpts/",

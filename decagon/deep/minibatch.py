@@ -9,6 +9,7 @@ from ..utility import preprocessing
 np.random.seed(123)
 
 EDGES_IDX = 0
+DRUG_DRUG_GRAPH_TYPE = (1, 1)
 
 class EdgeMinibatchIterator(object):
     """ This minibatch iterator iterates over batches of sampled edges or
@@ -17,13 +18,17 @@ class EdgeMinibatchIterator(object):
     placeholders -- tensorflow placeholders object
     batch_size -- size of the minibatches
     """
-    def __init__(self, adj_mats, feat, edge_types, batch_size=100, val_test_size=0.01):
+    def __init__(self, adj_mats, feat, edge_types, drug_drug_test_edges, batch_size=100, val_test_size=0.01):
         self.adj_mats = adj_mats
         self.feat = feat
         self.edge_types = edge_types
         self.batch_size = batch_size
         self.val_test_size = val_test_size
         self.num_edge_types = sum(self.edge_types.values())
+        self.drug_drug_test_edges = {
+            i: test_edges
+            for i, test_edges in enumerate(drug_drug_test_edges.values())
+        }
 
         self.iter = 0
         self.freebatch_edge_types= list(range(self.num_edge_types))
@@ -106,6 +111,8 @@ class EdgeMinibatchIterator(object):
 
         if mtx.isTranspose and self._test_edges_exist_tposed_mtx(mtx):
             return self._mask_test_edges_from_tpose(edge_type, type_idx, mtx)
+        elif edge_type == DRUG_DRUG_GRAPH_TYPE and type_idx in self.drug_drug_test_edges:
+            return self._mask_test_edges_drug_drug_precomputed(type_idx)
         else:
             return self._mask_test_edges_new(edge_type, type_idx)
 
@@ -213,6 +220,26 @@ class EdgeMinibatchIterator(object):
 
         self.test_edges_false[edge_type][type_idx] = \
             np.array(test_edges_false).reshape((len(test_edges_false), 2))
+
+    def _mask_test_edges_drug_drug_precomputed(self, type_idx):
+        thisAdjMat = self.adj_mats[DRUG_DRUG_GRAPH_TYPE][type_idx]
+
+        self.adj_train[DRUG_DRUG_GRAPH_TYPE][type_idx] = \
+            self.preprocess_graph(thisAdjMat)
+
+        self.train_edges[DRUG_DRUG_GRAPH_TYPE][type_idx] = np.dstack([
+            thisAdjMat.nonzero()[0],
+            thisAdjMat.nonzero()[1],
+        ]).reshape(-1, 2)
+
+        self.val_edges[DRUG_DRUG_GRAPH_TYPE][type_idx] = \
+            self.drug_drug_test_edges[type_idx]['positive']
+
+        self.val_edges_false[DRUG_DRUG_GRAPH_TYPE][type_idx] = \
+            self.drug_drug_test_edges[type_idx]['negative']
+
+        self.test_edges[DRUG_DRUG_GRAPH_TYPE][type_idx] = np.empty((0, 2))
+        self.test_edges_false[DRUG_DRUG_GRAPH_TYPE][type_idx] = np.empty((0, 2))
 
     def end(self):
         finished = len(self.freebatch_edge_types) == 0
