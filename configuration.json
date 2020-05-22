@@ -26,6 +26,7 @@
     "batch_size": 512,
     "bias": true,
     "TestSetProportion": 0.1,
+    "InitTrainSetProportion": 0.2,
     "NumIterationsPerLog": 1,
     "NumIterationsPerCheckpoint": 300,
     "CheckpointDirectory": "/Users/jarridr/repos/decagon/ckpts/",

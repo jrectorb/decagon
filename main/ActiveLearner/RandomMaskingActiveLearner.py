@@ -17,6 +17,7 @@ class RandomMaskingActiveLearner(
     def __init__(self, initDataSet, config: Config) -> None:
         self.numIters: int = 0
         self.testSetProportion = float(config.getSetting('TestSetProportion'))
+        self.initTrainSetProportion = float(config.getSetting('InitTrainSetProportion'))
         self.initDataSet = initDataSet
 
         self.adjMtxMasks = {
@@ -87,7 +88,21 @@ class RandomMaskingActiveLearner(
         possibilities = np.vstack(prePossbilitiesResult) \
                         if len(prePossbilitiesResult) > 0 else np.empty((0, 0, 0))
 
+        possibilities = self._reducePossibilitiesForInit(possibilities)
         return possibilities, testEdgeResult
+
+    def _reducePossibilitiesForInit(self, possibilities) -> np.array:
+        numToUnmask = int(
+            np.floor(len(possibilities) * self.initTrainSetProportion)
+        )
+
+        idxsToUnmask = \
+            np.random.choice(len(possibilities), size=numToUnmask, replace=False)
+
+        for idx in possibilities[idxsToUnmask]:
+            self.adjMtxMasks[idx[0]][idx[1], idx[2]] = 1
+
+        return np.delete(possibilities, idxsToUnmask, axis=0)
 
     def _getTestEdgeLinearIdxs(self, mtx, possibilities):
         allPosEdges = self._getPossiblePositiveEdgeIdxs(mtx)
