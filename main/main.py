@@ -12,7 +12,8 @@ from .Utils.ArgParser import ArgParser
 from .Utils.Config import Config
 from .Utils.ObjectFactory import ObjectFactory
 
-from typing import Type
+from typing import Type, Dict
+import numpy as np
 import ray
 import sys
 import os
@@ -30,11 +31,16 @@ def _setEnvVars(config: Config) -> None:
     else:
         os.environ['CUDA_VISIBLE_DEVICES'] = ''
 
-def _getTrainable(dataSet: Type[DataSet], config: Config) -> Type[Trainable]:
+def _getTrainable(
+    dataSet: Type[DataSet],
+    drugDrugTestEdges: Dict[int, Dict[str, np.array]],
+    config: Config
+) -> Type[Trainable]:
     trainableBuilder = ObjectFactory.build(
         BaseTrainableBuilder,
         TrainableType[config.getSetting('TrainableType')],
         dataSet=dataSet,
+        drugDrugTestEdges=drugDrugTestEdges,
         config=config,
     )
 
@@ -107,10 +113,11 @@ def _hackyMain() -> int:
     for adjMtxType in adjMtxTypes:
         dataSet: Type[DataSet] = DataSetBuilder.buildForMtxType(adjMtxType, config)
         activeLearner: Type[BaseActiveLearner] = _getActiveLearner(dataSet, config)
+        testEdges = activeLearner.testEdges
 
         for _ in range(8):
             dataSet = activeLearner.getUpdate(dataSet, None)
-            jobs.append(_doTraining.remote(dataSet, config))
+            jobs.append(_doTraining.remote(dataSet, testEdges, config))
 
     ray.get(jobs)
 
@@ -127,8 +134,8 @@ def _newHackyMain() -> int:
     _setEnvVars(config)
 
     adjMtxTypes = [
-        AnosmiaAdjMtxBuilder,
-        #HyperglycaemiaAdjMtxBuilder,
+        #AnosmiaAdjMtxBuilder,
+        HyperglycaemiaAdjMtxBuilder,
         #NeutropeniaAdjMtxBuilder,
     ]
 
@@ -171,6 +178,7 @@ def _doTrainingGreedy(adjMtxType, config):
     from .ActiveLearner.GreedyActiveLearner import GreedyActiveLearner
     dataSet: Type[DataSet] = DataSetBuilder.buildForMtxType(adjMtxType, config)
     activeLearner: Type[BaseActiveLearner] = GreedyActiveLearner(dataSet, config)
+    testEdges = activeLearner.testEdges
 
     trainable = None
     trainer = None
@@ -186,7 +194,7 @@ def _doTrainingGreedy(adjMtxType, config):
             None
         )
 
-        trainable: Type[Trainable] = _getTrainable(dataSet, config)
+        trainable: Type[Trainable] = _getTrainable(dataSet, testEdges, config)
         trainer: Type[BaseTrainer] = _getTrainer(dataSet.id, trainable, config)
 
         lastUsedFeedDict = trainer.train()
@@ -195,8 +203,8 @@ def _doTrainingGreedy(adjMtxType, config):
     return
 
 @ray.remote(num_gpus=1, max_calls=1)
-def _doTraining(dataSet: DataSet, config: Config):
-    trainable: Type[Trainable] = _getTrainable(dataSet, config)
+def _doTraining(dataSet: DataSet, testEdges: np.array, config: Config):
+    trainable: Type[Trainable] = _getTrainable(dataSet, testEdges, config)
     trainer: Type[BaseTrainer] = _getTrainer(dataSet.id, trainable, config)
 
     trainer.train()

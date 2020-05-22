@@ -9,9 +9,10 @@ from ...Utils.Config import Config
 from .decagon.deep.minibatch import EdgeMinibatchIterator
 from .decagon.deep.model import DecagonModel
 from .decagon.deep.optimizer import DecagonOptimizer
-from typing import Type
+from typing import Type, Dict
 
 import tensorflow as tf
+import numpy as np
 
 class DecagonTrainableBuilder(
     BaseTrainableBuilder,
@@ -20,6 +21,7 @@ class DecagonTrainableBuilder(
     def __init__(
         self,
         dataSet: DataSet,
+        drugDrugTestEdges: Dict[int, Dict[str, np.array]],
         config: Config,
         decagonDataSet: DecagonDataSet = None,
         placeholdersDict=None
@@ -33,6 +35,7 @@ class DecagonTrainableBuilder(
         self.placeholdersDict = \
             placeholdersDict if placeholdersDict is not None else self.dataSet.placeholdersDict
 
+        self.drugDrugTestEdges: Dict[int, Dict[str, np.array]] = drugDrugTestEdges
         self.config: Config = config
 
     def build(self) -> Type[Trainable]:
@@ -52,8 +55,9 @@ class DecagonTrainableBuilder(
             self.dataSet.adjacencyMatrixDict,
             self.dataSet.featuresDict,
             self.dataSet.edgeTypeNumMatricesDict,
+            self.drugDrugTestEdges,
             self.dataSet.flags.batch_size,
-            float(self.config.getSetting('ValidationSetProportion')),
+            float(self.config.getSetting('TestSetProportion'))
         )
 
     def getModel(self) -> DecagonModel:
