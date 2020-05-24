@@ -71,10 +71,11 @@ class EdgeMinibatchIterator(object):
                 print("Val edges=", "%04d" % len(self.val_edges[i,j][k]))
                 print("Test edges=", "%04d" % len(self.test_edges[i,j][k]))
 
+    @property
     def graphAndRelationTypes(self):
-        for graphType, relIdsToMtx in self.val_edges.items():
-            for relId in relIdsToMtx.keys():
-                yield GraphRelationType(graphType, relId)
+        for graphType, graphTypeMtxs in self.val_edges.items():
+            for idx in range(len(graphTypeMtxs)):
+                yield GraphRelationType(graphType, idx)
 
     def preprocess_graph(self, adj):
         adj = sp.coo_matrix(adj)

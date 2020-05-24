@@ -4,12 +4,13 @@ from ..BaseTrainableBuilder import BaseTrainableBuilder
 from ...Dtos.DataSet import DataSet
 from ...Dtos.Enums.TrainableType import TrainableType
 from ...Dtos.IterationResults import IterationResults
+from ...Dtos.NodeIds import DrugId, ProteinId, SideEffectId
 from ...Dtos.Trainable import Trainable
 from ...Utils.Config import Config
 from .decagon.deep.minibatch import EdgeMinibatchIterator
 from .decagon.deep.model import DecagonModel
 from .decagon.deep.optimizer import DecagonOptimizer
-from typing import Type, Dict
+from typing import Type, Dict, Tuple
 
 import tensorflow as tf
 import numpy as np
@@ -119,7 +120,7 @@ class DecagonTrainableBuilder(
 
     def _recordTestEdges(self, dataSetIterator: EdgeMinibatchIterator) -> None:
         import pdb; pdb.set_trace()
-        f = open(config.getSetting('TestEdgeFilename'))
+        f = open(self.config.getSetting('TestEdgeFilename'), 'w')
         writer = self._getWriter(f)
 
         for graphRelationType in dataSetIterator.graphAndRelationTypes:
@@ -130,9 +131,15 @@ class DecagonTrainableBuilder(
     def _recordEdges(self, dictWriter, graphRelationType, dataSetIterator) -> None:
         relTypeStr = ''
         if graphRelationType.graphType == DRUG_DRUG_GRAPH_TYPE:
-            relTypeStr = SideEffectId.toDecagonFormat(
-                self.relIdxToRelId[graphRelationType.relationType]
-            )
+            try:
+                relTypeStr = SideEffectId.toDecagonFormat(
+                    self.relIdxToRelId[graphRelationType.relationType]
+                )
+            except KeyError:
+                # Will have a key error here for TPosed IDs. These test edges
+                # are the same as those for which they are TPosed, so we just
+                # write the non-transposed ones and don't process those transposed.
+                return
 
         decoders = {
             0: ProteinId.toDecagonFormat,
@@ -164,8 +171,8 @@ class DecagonTrainableBuilder(
         )
 
         # Write to writer
-        map(lambda x: dictWriter.writerow(x), posRecordDicts)
-        map(lambda x: dictWriter.writerow(x), negRecordDicts)
+        list(map(lambda x: dictWriter.writerow(x), posRecordDicts))
+        list(map(lambda x: dictWriter.writerow(x), negRecordDicts))
 
     def _getWriter(self, f) -> csv.DictWriter:
         fieldnames = [
