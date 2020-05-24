@@ -19,6 +19,7 @@ class DecagonPublicDataNodeListsBuilder(
             config.getSetting('DecagonDrugDrugRelationsFilename'),
             delimiter=',',
             create_using=nx.MultiGraph(),
+            nodetype=DrugId,
             data=(('relationType', str),)
         )
 
@@ -29,6 +30,7 @@ class DecagonPublicDataNodeListsBuilder(
 
         self.ppiGraph: nx.Graph = nx.read_edgelist(
             config.getSetting('DecagonProteinProteinRelationsFilename'),
+            nodetype=ProteinId,
             delimiter=','
         )
 
@@ -43,28 +45,34 @@ class DecagonPublicDataNodeListsBuilder(
             self.drugDrugRelationGraph.nodes
         ).union(set(self._getDrugProteinGraphDrugs()))
 
-        return sorted(list(map(DrugId.fromDecagonFormat, allDrugs)))
+        return sorted(list(allDrugs))
 
     def _getDrugProteinGraphDrugs(self) -> Iterator[tuple]:
         # In preprocessed dataset, all drug identifiers are prefixed with 'CID'
         # while protein identifiers are not
-        return filter(
+        drugNodes = filter(
             lambda x: x[:3] == 'CID',
             self.drugProteinRelationGraph.nodes
         )
+
+        # Convert all drug id strs to DrugIds
+        return map(DrugId, drugNodes)
 
     def _getOrderedProteinNodeList(self) -> EdgeList:
         allProteins = set(
             self.ppiGraph.nodes
         ).union(set(self._getDrugProteinGraphProteins()))
 
-        return sorted(list(map(ProteinId.fromDecagonFormat, allProteins)))
+        return sorted(list(allProteins))
 
     def _getDrugProteinGraphProteins(self) -> Iterator[tuple]:
         # In preprocessed dataset, all drug identifiers are prefixed with 'CID'
         # while protein identifiers are not
-        return filter(
+        proteinNodes = filter(
             lambda x: x[:3] != 'CID',
             self.drugProteinRelationGraph.nodes
         )
+
+
+        return map(ProteinId, proteinNodes)
 

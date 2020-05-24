@@ -75,6 +75,7 @@ def main() -> int:
     config: Config = _getConfig()
     _setEnvVars(config)
     dataSet: Type[DataSet] = DataSetBuilder.build(config)
+    import pdb; pdb.set_trace()
 
     activeLearner: Type[BaseActiveLearner] = _getActiveLearner(dataSet, config)
     testEdges = activeLearner.testEdges
