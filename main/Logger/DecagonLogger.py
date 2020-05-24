@@ -166,7 +166,7 @@ class DecagonLogger(BaseLogger, functionalityType=LoggerType.DecagonLogger):
         else:
             return self.accuracyEvaluator.evaluate(
                 feedDict,
-                iterator.idx2edge_type[iterator.current_edge_type_idx],
+                (1, 1, 0),
                 iterator.val_edges,
                 iterator.val_edges_false
             )

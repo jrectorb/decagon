@@ -184,7 +184,14 @@ def _doTrainingGreedy(adjMtxType, config):
     trainer = None
     predTensor = None
     lastUsedFeedDict = None
-    for _ in range(8):
+    dataSet = activeLearner.getUpdate(None, None, None, None, dataSet, None)
+    trainable: Type[Trainable] = _getTrainable(dataSet, testEdges, config)
+    trainer: Type[BaseTrainer] = _getTrainer(dataSet.id, trainable, config)
+
+    lastUsedFeedDict = trainer.train()
+    predTensor = trainable.optimizer.predictions
+    activeLearner.numIters = 4
+    for _ in range(4, 8):
         dataSet = activeLearner.getUpdate(
             predTensor,
             trainable.optimizer.placeholders if trainable else None,
@@ -212,8 +219,5 @@ def _doTraining(dataSet: DataSet, testEdges: np.array, config: Config):
     return
 
 if __name__ == '__main__':
-    if sys.argv[-1].isdigit() and int(sys.argv[-1]) == 0:
-        sys.exit(_newHackyMain())
-    else:
-        sys.exit(_hackyMain())
+    sys.exit(_newHackyMain())
 
