@@ -43,6 +43,8 @@ class DecagonTrainableBuilder(
         model = self.getModel()
         optimizer = self.getOptimizer(model)
 
+        self._recordTestEdges(dataSetIterator)
+
         return DecagonTrainable(
             dataSetIterator,
             optimizer,

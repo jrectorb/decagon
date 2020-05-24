@@ -1,10 +1,11 @@
 from .RandomMaskingActiveLearner import RandomMaskingActiveLearner
+from ..Dtos.Enums.ActiveLearnerType import ActiveLearnerType
 from ..Utils.Config import Config
 from typing import Set
 
 class RelationFullMaskingLearner(
     RandomMaskingActiveLearner,
-    functionalityType=ActiveLearrnerType.RelationFullMaskingLearner
+    functionalityType=ActiveLearnerType.RelationFullMaskingLearner
 ):
     def __init__(self, initDataSet, config: Config) -> None:
         super().__init__(initDataSet, config)

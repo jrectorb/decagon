@@ -9,7 +9,10 @@ class BaseNodeId(int):
         if isinstance(val, str):
             val = BaseNodeId._formatStr(val)
 
-        return int(val)
+        return int.__new__(cls, val)
+
+    def toDecagonFormat(self):
+        return str(self)
 
     @classmethod
     def fromDecagonFormat(cls, val: object) -> Type['BaseNodeId']:
@@ -34,11 +37,29 @@ class BaseNodeId(int):
         return preStr
 
 class DrugId(BaseNodeId):
-    pass
+    def toDecagonFormat(self):
+        preStr = str(self)
+
+        # All STITCH drug IDs are of the format CID<nums> where <nums> is a
+        # sequence of 9 numbers.  If a preStr, as above, has less than 9
+        # digits, the STITCH ID has 0s prepended to those preStr digits.
+        numPrecedingZeros = 9 - len(preStr)
+        zerosStr = '0' * numPrecedingZeros
+
+        return 'CID' + zerosStr + preStr
 
 class ProteinId(BaseNodeId):
     pass
 
 class SideEffectId(BaseNodeId):
-    pass
+    def toDecagonFormat(self):
+        preStr = str(self)
+
+        # All STITCH side effect IDs are of the format C<nums> where <nums> is a
+        # sequence of 7 numbers.  If a preStr, as above, has less than 7
+        # digits, the STITCH ID has 0s prepended to those preStr digits.
+        numPrecedingZeros = 7 - len(preStr)
+        zerosStr = '0' * numPrecedingZeros
+
+        return 'C' + zerosStr + preStr
 

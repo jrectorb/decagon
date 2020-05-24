@@ -1,5 +1,5 @@
 {
-    "DataSetType": "DecagonDummyData",
+    "DataSetType": "DecagonPublicData",
     "TrainableType": "DecagonTrainable",
     "ActiveLearnerType": "RandomMaskingActiveLearner",
     "TrainerType": "DecagonTrainer",
