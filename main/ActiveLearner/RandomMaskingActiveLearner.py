@@ -31,27 +31,6 @@ class RandomMaskingActiveLearner(
 
         self.dataSetSize = len(self.possibilities)
 
-    def _getPossiblePositiveEdgeIdxs(self, mtx: sp.csr_matrix) -> np.array:
-        nonzeroTpl = mtx.nonzero()
-        return np.dstack([nonzeroTpl[0], nonzeroTpl[1]]).reshape(-1, 2)
-
-    def _getPossibleNegativeEdgeIdxs(
-        self,
-        possibilities: np.array,
-        positiveEdges: np.array,
-        mtxShape: Tuple[int, int]
-    ) -> np.array:
-        possibilitiesLinear = (possibilities[:, 0] * mtxShape[1]) + possibilities[:, 1]
-        positivesLinear = (positiveEdges[:, 0] * mtxShape[1]) + positiveEdges[:, 1]
-
-        negativesLinear = np.setdiff1d(possibilitiesLinear, positivesLinear)
-
-        return np.dstack(np.unravel_index(negativesLinear, mtxShape)).reshape(-1, 2)
-
-    def _getShapePossibleIdxs(self, shape: Tuple[int, int]) -> np.array:
-        xx, yy = np.indices(shape)
-        return np.dstack([xx, yy]).reshape(-1, 2)
-
     @property
     def _attrNameToIdx(self):
         return {
@@ -68,6 +47,9 @@ class RandomMaskingActiveLearner(
         prePossbilitiesResult = []
         testEdgeResult = {}
         for rel, mtx in self.adjMtxMasks.items():
+            if not self._isRelationValid(rel):
+                continue
+
             grid = self._getShapePossibleIdxs(mtx.shape)
 
             posTestEdgeIdxs, negTestEdgeIdxs = self._getTestEdgeLinearIdxs(
@@ -90,6 +72,9 @@ class RandomMaskingActiveLearner(
 
         possibilities = self._reducePossibilitiesForInit(possibilities)
         return possibilities, testEdgeResult
+
+    def _isRelationValid(self, relation: str) -> bool:
+        return True
 
     def _reducePossibilitiesForInit(self, possibilities) -> np.array:
         numToUnmask = int(
@@ -138,6 +123,27 @@ class RandomMaskingActiveLearner(
         edges = possibleEdges[edgeSetIdxs]
 
         return (edges[:, 0] * fullSetColDim) + edges[:, 1]
+
+    def _getPossiblePositiveEdgeIdxs(self, mtx: sp.csr_matrix) -> np.array:
+        nonzeroTpl = mtx.nonzero()
+        return np.dstack([nonzeroTpl[0], nonzeroTpl[1]]).reshape(-1, 2)
+
+    def _getPossibleNegativeEdgeIdxs(
+        self,
+        possibilities: np.array,
+        positiveEdges: np.array,
+        mtxShape: Tuple[int, int]
+    ) -> np.array:
+        possibilitiesLinear = (possibilities[:, 0] * mtxShape[1]) + possibilities[:, 1]
+        positivesLinear = (positiveEdges[:, 0] * mtxShape[1]) + positiveEdges[:, 1]
+
+        negativesLinear = np.setdiff1d(possibilitiesLinear, positivesLinear)
+
+        return np.dstack(np.unravel_index(negativesLinear, mtxShape)).reshape(-1, 2)
+
+    def _getShapePossibleIdxs(self, shape: Tuple[int, int]) -> np.array:
+        xx, yy = np.indices(shape)
+        return np.dstack([xx, yy]).reshape(-1, 2)
 
     def hasUpdate(self, dataset, iterResults) -> bool:
         return 2 ** self.numIters < 100

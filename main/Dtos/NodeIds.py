@@ -5,12 +5,15 @@ class BaseNodeId(int):
     Not meant to be instantiated, but rather used as a utility for
     other Id classes (namely, to convert from decagon format)
     '''
-    def __new__(cls, value) -> None:
-        return int(BaseNodeId._formatStr(value))
+    def __new__(cls, val: object) -> Type['BaseNodeId']:
+        if isinstance(val, str):
+            val = BaseNodeId._formatStr(val)
+
+        return int(val)
 
     @classmethod
-    def fromDecagonFormat(cls, preStr: str) -> Type['BaseNodeId']:
-        return cls(BaseNodeId._formatStr(preStr))
+    def fromDecagonFormat(cls, val: object) -> Type['BaseNodeId']:
+        return cls(BaseNodeId._formatStr(val))
 
     @staticmethod
     def _formatStr(preStr: str) -> str:

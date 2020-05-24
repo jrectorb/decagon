@@ -77,143 +77,17 @@ def main() -> int:
     dataSet: Type[DataSet] = DataSetBuilder.build(config)
 
     activeLearner: Type[BaseActiveLearner] = _getActiveLearner(dataSet, config)
-
-    iterResults: Type[IterationResults] = None
-    runningJobs = []
-    while activeLearner.hasUpdate(dataSet, iterResults):
-        dataSet = activeLearner.getUpdate(dataSet, iterResults)
-
-        trainable: Type[Trainable] = _getTrainable(dataSet, config)
-        trainer: Type[BaseTrainer] = _getTrainer(dataSet.id, trainable, config)
-
-        trainer.train()
-
-    ray.get(trainingJobs)
-
-    return 0
-
-def _hackyMain() -> int:
-    from .DataSetParsers.AdjacencyMatrices.AnosmiaAdjMtxBuilder import AnosmiaAdjMtxBuilder
-    from .DataSetParsers.AdjacencyMatrices.HyperglycaemiaAdjMtxBuilder import HyperglycaemiaAdjMtxBuilder
-    from .DataSetParsers.AdjacencyMatrices.NeutropeniaAdjMtxBuilder import NeutropeniaAdjMtxBuilder
-
-    ray.init()#local_mode=True)
-
-    config: Config = _getConfig()
-    _setEnvVars(config)
-
-    adjMtxTypes = [
-        AnosmiaAdjMtxBuilder,
-        HyperglycaemiaAdjMtxBuilder,
-        NeutropeniaAdjMtxBuilder,
-    ]
-
-    jobs = []
-
-    for adjMtxType in adjMtxTypes:
-        dataSet: Type[DataSet] = DataSetBuilder.buildForMtxType(adjMtxType, config)
-        activeLearner: Type[BaseActiveLearner] = _getActiveLearner(dataSet, config)
-        testEdges = activeLearner.testEdges
-
-        for _ in range(3, 8):
-            dataSet = activeLearner.getUpdate(dataSet, None)
-            jobs.append(_doTraining.remote(dataSet, testEdges, config))
-
-    ray.get(jobs)
-
-    return 0
-
-def _newHackyMain() -> int:
-    from .DataSetParsers.AdjacencyMatrices.AnosmiaAdjMtxBuilder import AnosmiaAdjMtxBuilder
-    from .DataSetParsers.AdjacencyMatrices.HyperglycaemiaAdjMtxBuilder import HyperglycaemiaAdjMtxBuilder
-    from .DataSetParsers.AdjacencyMatrices.NeutropeniaAdjMtxBuilder import NeutropeniaAdjMtxBuilder
-
-    ray.init()#local_mode=True)
-
-    config: Config = _getConfig()
-    _setEnvVars(config)
-
-    adjMtxTypes = [
-        #AnosmiaAdjMtxBuilder,
-        HyperglycaemiaAdjMtxBuilder,
-        #NeutropeniaAdjMtxBuilder,
-    ]
-
-    objs = [
-        _doTrainingGreedy.remote(adjMtxType, config)
-        for adjMtxType in adjMtxTypes
-    ]
-
-    #from .ActiveLearner.GreedyActiveLearner import GreedyActiveLearner
-    #for adjMtxType in adjMtxTypes:
-    #    dataSet: Type[DataSet] = DataSetBuilder.buildForMtxType(adjMtxType, config)
-    #    activeLearner: Type[BaseActiveLearner] = GreedyActiveLearner(dataSet, config)
-
-    #    trainable = None
-    #    trainer = None
-    #    predTensor = None
-    #    lastUsedFeedDict = None
-    #    for _ in range(7):
-    #        dataSet = activeLearner.getUpdate(
-    #            predTensor,
-    #            trainable.optimizer.placeholders if trainable else None,
-    #            lastUsedFeedDict,
-    #            trainer.session if trainer else None,
-    #            dataSet,
-    #            None
-    #        )
-
-    #        trainable: Type[Trainable] = _getTrainable(dataSet, config)
-    #        trainer: Type[BaseTrainer] = _getTrainer(dataSet.id, trainable, config)
-
-    #        lastUsedFeedDict = trainer.train()
-    #        predTensor = trainable.optimizer.predictions
-
-    ray.get(objs)
-
-    return 0
-
-@ray.remote(num_gpus=1, max_calls=1)
-def _doTrainingGreedy(adjMtxType, config):
-    from .ActiveLearner.GreedyActiveLearner import GreedyActiveLearner
-    dataSet: Type[DataSet] = DataSetBuilder.buildForMtxType(adjMtxType, config)
-    activeLearner: Type[BaseActiveLearner] = GreedyActiveLearner(dataSet, config)
     testEdges = activeLearner.testEdges
 
-    trainable = None
-    trainer = None
-    predTensor = None
-    lastUsedFeedDict = None
-    for _ in range(8):
-        dataSet = activeLearner.getUpdate(
-            predTensor,
-            trainable.optimizer.placeholders if trainable else None,
-            lastUsedFeedDict,
-            trainer.session if trainer else None,
-            dataSet,
-            None
-        )
+    iterResults: Type[IterationResults] = None
+    while activeLearner.hasUpdate(dataSet, iterResults):
+        dataSet = activeLearner.getUpdate(dataSet, iterResults)
 
         trainable: Type[Trainable] = _getTrainable(dataSet, testEdges, config)
         trainer: Type[BaseTrainer] = _getTrainer(dataSet.id, trainable, config)
 
-        lastUsedFeedDict = trainer.train()
-        predTensor = trainable.optimizer.predictions
-
-    return
-
-@ray.remote(num_gpus=1, max_calls=1)
-def _doTraining(dataSet: DataSet, testEdges: np.array, config: Config):
-    trainable: Type[Trainable] = _getTrainable(dataSet, testEdges, config)
-    trainer: Type[BaseTrainer] = _getTrainer(dataSet.id, trainable, config)
-
-    trainer.train()
-
-    return
+        trainer.train()
 
 if __name__ == '__main__':
-    if sys.argv[-1].isdigit() and int(sys.argv[-1]) == 0:
-        sys.exit(_newHackyMain())
-    else:
-        sys.exit(_hackyMain())
+    sys.exit(main())
 
