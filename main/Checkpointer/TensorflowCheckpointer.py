@@ -11,31 +11,27 @@ import os
 NON_DIGIT_CHARS = set(string.printable).difference(set(string.digits))
 
 class TensorflowCheckpointer(BaseCheckpointer):
-    def __init__(
-        self,
-        trainable: TensorflowTrainable,
-        session: tf.Session,
-        config: Config
-    ) -> None:
+    def __init__(self, session: tf.Session, config: Config) -> None:
         super().__init__(config)
 
+        self.session: tf.Session = session
         self.shouldEverCheckpoint = bool(config.getSetting('ShouldCheckpoint'))
 
-        self.checkpoint: tf.train.Checkpoint = \
-            tfe.Checkpoint(**trainable.checkpointDict)
+        maxToKeep: int = int(config.getSetting('MaxCheckpointsToKeep'))
+        self.saver = tf.train.Saver = tf.train.Saver(max_to_keep=maxToKeep)
 
-        self.session: tf.Session = session
+        self.saverBaseName = self._getModelSaverBaseName(config)
 
-        self.ckptDir: str = config.getSetting('CheckpointDirectory')
-        Path(self.ckptDir).mkdir(parents=True, exist_ok=True)
-
-        # TODO: Implement only keeping k checkpoints
-        #self.maxToKeep: int = int(config.getSetting('MaxCheckpointsToKeep'))
+    def _getModelSaverBaseName(self, config: Config):
+        ckptDir: str = config.getSetting('CheckpointDirectory')
+        Path(ckptDir).mkdir(parents=True, exist_ok=True)
 
         customName = config.getSetting('CustomCheckpointName')
-        self.ckptBaseName: str = 'ckpt'
+        ckptBaseName: str = 'ckpt'
         if customName:
-            self.ckptBaseName = self.ckptBaseName + "_%s" % customName
+            ckptBaseName = ckptBaseName + "_%s" % customName
+
+        return ckptDir + ckptBaseName
 
     def _getCkptName(self, isNew: bool) -> str:
         thisFileIdx = self._getCurrFnameIdx()
@@ -86,8 +82,7 @@ class TensorflowCheckpointer(BaseCheckpointer):
         if not self.shouldEverCheckpoint:
             return
 
-        newFname = self.ckptDir + self._getCkptName(isNew=True)
-        self.checkpoint.save(newFname, session=self.session)
+        self.saver.save(self.session, self.saverBaseName)
 
     def restore(self):
         if not self.shouldEverCheckpoint:
@@ -96,5 +91,5 @@ class TensorflowCheckpointer(BaseCheckpointer):
         someCkptExists = self._getCurrFnameIdx() != -1
         currFname = self._getCkptName(isNew=False)
 
-        self.checkpoint.restore(self.ckptDir + currFname)
+        self.saver.restore(self.session, self.ckptDir + currFname)
 

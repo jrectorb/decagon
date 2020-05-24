@@ -1,5 +1,5 @@
 {
-    "DataSetType": "DecagonPublicData",
+    "DataSetType": "DecagonDummyData",
     "TrainableType": "DecagonTrainable",
     "ActiveLearnerType": "RandomMaskingActiveLearner",
     "TrainerType": "DecagonTrainer",
@@ -26,17 +26,17 @@
     "batch_size": 512,
     "bias": true,
     "TestSetProportion": 0.1,
-    "InitTrainSetProportion": 0.2,
-    "NumIterationsPerLog": 1,
+    "InitTrainSetProportion": 1.0,
+    "NumIterationsPerLog": 150,
     "NumIterationsPerCheckpoint": 300,
     "CheckpointDirectory": "/Users/jarridr/repos/decagon/ckpts/",
     "TrainIterationResultDir": "/Users/jarridr/repos/decagon/results/",
     "MaxCheckpointsToKeep": 3,
     "CustomCheckpointName": "public_data",
-    "NumEpochs": 1,
+    "NumEpochs": 30,
     "ApkRank": 50,
     "InitialUnmaskedProportion": 0.5,
     "ProportionUnmaskedPerIteration": 0.05,
     "UseGpu": false,
-    "ShouldCheckpoint": false
+    "ShouldCheckpoint": true
 }

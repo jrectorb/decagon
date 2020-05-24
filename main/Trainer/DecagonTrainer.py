@@ -20,7 +20,7 @@ class BaseDecagonTrainer(BaseTrainer, functionalityType=TrainerType.DecagonTrain
         tfConf = self._getTfConf()
         self.session: tf.Session = tf.Session(config=tfConf)
 
-        checkpointer = TensorflowCheckpointer(trainable, self.session, config)
+        checkpointer = TensorflowCheckpointer(self.session, config)
         self.logger = DecagonLogger(
             self.session,
             dataSetId,
