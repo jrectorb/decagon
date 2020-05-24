@@ -11,8 +11,16 @@ class BaseNodeId(int):
 
         return int.__new__(cls, val)
 
-    def toDecagonFormat(self):
-        return str(self)
+    @classmethod
+    def toDecagonFormat(cls, val=None):
+        toConvToStr = cls
+        if not isinstance(cls, BaseNodeId):
+            if val is None:
+                raise ValueError('If cls is not a BaseNodeId, val must not be None')
+
+            toConvToStr = cls(val)
+
+        return str(toConvToStr)
 
     @classmethod
     def fromDecagonFormat(cls, val: object) -> Type['BaseNodeId']:

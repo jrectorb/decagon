@@ -38,5 +38,6 @@
     "InitialUnmaskedProportion": 0.5,
     "ProportionUnmaskedPerIteration": 0.05,
     "UseGpu": false,
-    "ShouldCheckpoint": true
+    "ShouldCheckpoint": true,
+    "TestEdgeFilename": "/Users/jarridr/repos/decagon/test-edges.csv"
 }

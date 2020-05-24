@@ -11,6 +11,11 @@ np.random.seed(123)
 EDGES_IDX = 0
 DRUG_DRUG_GRAPH_TYPE = (1, 1)
 
+class GraphRelationType:
+    def __init__(self, graphType, relationType) -> None:
+        self.graphType = graphType
+        self.relationType = relationType
+
 class EdgeMinibatchIterator(object):
     """ This minibatch iterator iterates over batches of sampled edges or
     random pairs of co-occuring edges.
@@ -65,6 +70,11 @@ class EdgeMinibatchIterator(object):
                 print("Train edges=", "%04d" % len(self.train_edges[i,j][k]))
                 print("Val edges=", "%04d" % len(self.val_edges[i,j][k]))
                 print("Test edges=", "%04d" % len(self.test_edges[i,j][k]))
+
+    def graphAndRelationTypes(self):
+        for graphType, relIdsToMtx in self.val_edges.items():
+            for relId in relIdsToMtx.keys():
+                yield GraphRelationType(graphType, relId)
 
     def preprocess_graph(self, adj):
         adj = sp.coo_matrix(adj)
@@ -162,7 +172,7 @@ class EdgeMinibatchIterator(object):
 
     def _mask_test_edges_new(self, edge_type, type_idx):
         edges_all, _, _ = preprocessing.sparse_to_tuple(self.adj_mats[edge_type][type_idx])
-        num_test = max(50, int(np.floor(edges_all.shape[0] * self.val_test_size)))
+        num_test = max(50, int(np.floor(edges_all.shape[0] * 0)))#self.val_test_size)))
         num_val = max(50, int(np.floor(edges_all.shape[0] * self.val_test_size)))
 
         all_edge_idx = list(range(edges_all.shape[0]))

@@ -13,6 +13,15 @@ from typing import Type, Dict
 
 import tensorflow as tf
 import numpy as np
+import csv
+
+DRUG_DRUG_GRAPH_TYPE = (1, 1)
+
+FROM_GRAPH_IDX = 0
+TO_GRAPH_IDX   = 1
+
+FROM_NODE_IDX  = 0
+TO_NODE_IDX    = 1
 
 class DecagonTrainableBuilder(
     BaseTrainableBuilder,
@@ -31,6 +40,9 @@ class DecagonTrainableBuilder(
             self.dataSet = decagonDataSet
         else:
             self.dataSet = DecagonDataSet.fromDataSet(dataSet, config)
+
+        drugDrugMtxs = dataSet.adjacencyMatrices.drugDrugRelationMtxs
+        self.relIdxToRelId = {idx: relId for idx, relId in enumerate(drugDrugMtxs)}
 
         self.placeholdersDict = \
             placeholdersDict if placeholdersDict is not None else self.dataSet.placeholdersDict
@@ -104,4 +116,67 @@ class DecagonTrainableBuilder(
 
     def getIterationResults(self) -> IterationResults:
         return IterationResults()
+
+    def _recordTestEdges(self, dataSetIterator: EdgeMinibatchIterator) -> None:
+        import pdb; pdb.set_trace()
+        f = open(config.getSetting('TestEdgeFilename'))
+        writer = self._getWriter(f)
+
+        for graphRelationType in dataSetIterator.graphAndRelationTypes:
+            self._recordEdges(writer, graphRelationType, dataSetIterator)
+
+        f.close()
+
+    def _recordEdges(self, dictWriter, graphRelationType, dataSetIterator) -> None:
+        relTypeStr = ''
+        if graphRelationType.graphType == DRUG_DRUG_GRAPH_TYPE:
+            relTypeStr = SideEffectId.toDecagonFormat(
+                self.relIdxToRelId[graphRelationType.relationType]
+            )
+
+        decoders = {
+            0: ProteinId.toDecagonFormat,
+            1: DrugId.toDecagonFormat,
+        }
+
+        def _getRecordDict(edge: Tuple[int, int], label: int):
+            fromGraphType = graphRelationType.graphType[FROM_GRAPH_IDX]
+            toGraphType = graphRelationType.graphType[TO_GRAPH_IDX]
+
+            return {
+                'FromNode': decoders[fromGraphType](edge[FROM_NODE_IDX]),
+                'ToNode': decoders[toGraphType](edge[TO_NODE_IDX]),
+                'RelationId': relTypeStr,
+                'Label': label,
+            }
+
+        graphType    = graphRelationType.graphType
+        relationType = graphRelationType.relationType
+
+        posRecordDicts = map(
+            lambda x: _getRecordDict(x, 1),
+            dataSetIterator.val_edges[graphType][relationType]
+        )
+
+        negRecordDicts = map(
+            lambda x: _getRecordDict(x, 0),
+            dataSetIterator.val_edges_false[graphType][relationType]
+        )
+
+        # Write to writer
+        map(lambda x: dictWriter.writerow(x), posRecordDicts)
+        map(lambda x: dictWriter.writerow(x), negRecordDicts)
+
+    def _getWriter(self, f) -> csv.DictWriter:
+        fieldnames = [
+            'FromNode',
+            'ToNode',
+            'RelationId',
+            'Label'
+        ]
+
+        writer = csv.DictWriter(f, fieldnames=fieldnames)
+        writer.writeheader()
+
+        return writer
 
