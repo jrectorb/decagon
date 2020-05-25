@@ -1,10 +1,10 @@
 {
-    "DataSetType": "DecagonPublicData",
+    "DataSetType": "DecagonDummyData",
     "TrainableType": "DecagonTrainable",
     "ActiveLearnerType": "RandomMaskingActiveLearner",
     "TrainerType": "DecagonTrainer",
-    "NumProteins": 450,
-    "NumDrugs": 500,
+    "NumProteins": 200,
+    "NumDrugs": 250,
     "NumDrugDrugRelationTypes": 3,
     "TrainWithTransposedAdjacencyMatrices": "True",
     "DecagonDrugDrugRelationsFilename": "/home/mkkr/scratch/Projects/11_decagon/data/bio-decagon-combo.csv",
