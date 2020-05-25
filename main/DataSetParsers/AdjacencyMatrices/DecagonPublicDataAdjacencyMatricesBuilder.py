@@ -122,7 +122,6 @@ class DecagonPublicDataAdjacencyMatricesBuilder(
         return result
 
     def _isEdgeListValid(self, edgeList: EdgeList) -> bool:
-        return True
         return len(edgeList) >= 500
 
     def _buildDrugProteinRelationMtx(self) -> Type[sp.csr_matrix]:

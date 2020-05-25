@@ -17,7 +17,7 @@
     "DrugDrugEdgeDecoder": "dedicom",
     "neg_sample_size": 1.0,
     "learning_rate": 0.001,
-    "epochs": 20,
+    "epochs": 30,
     "hidden1": 64,
     "hidden2": 32,
     "weight_decay": 0,
@@ -33,11 +33,12 @@
     "TrainIterationResultDir": "/home/mkkr/scratch/Projects/11_decagon/rel_masking/",
     "MaxCheckpointsToKeep": 3,
     "CustomCheckpointName": "rel_masking",
-    "NumEpochs": 20,
+    "NumEpochs": 30,
     "ApkRank": 50,
     "InitialUnmaskedProportion": 0.5,
     "ProportionUnmaskedPerIteration": 0.05,
     "UseGpu": true,
     "ShouldCheckpoint": true,
-    "InvalidRelationIds": [3126, 20456, 27947]
+    "InvalidRelationIds": [3126, 20456, 27947],
+    "TestEdgeFilename": "/home/mkkr/scratch/Projects/11_decagon/test-edges-rel-masking.csv"
 }
