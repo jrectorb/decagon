@@ -277,14 +277,15 @@ class EdgeMinibatchIterator(object):
 
     def next_minibatch_feed_dict(self, placeholders):
         """Select a random edge type and a batch of edges of the same type"""
+        modVal = 4 if (1, 0, 0) in self.edge_type2idx else 3
         while True:
-            if self.iter % 4 == 0:
+            if self.iter % modVal == 0:
                 # gene-gene relation
                 self.current_edge_type_idx = self.edge_type2idx[0, 0, 0]
-            elif self.iter % 4 == 1:
+            elif self.iter % modVal == 1:
                 # gene-drug relation
                 self.current_edge_type_idx = self.edge_type2idx[0, 1, 0]
-            elif self.iter % 4 == 2:
+            elif self.iter % modVal == 2 and modVal == 4:
                 # drug-gene relation
                 self.current_edge_type_idx = self.edge_type2idx[1, 0, 0]
             else:
@@ -333,7 +334,12 @@ class EdgeMinibatchIterator(object):
                 self.batch_num[self.edge_type2idx[edge_type[0], edge_type[1], k]] = 0
         self.current_edge_type_idx = 0
         self.freebatch_edge_types = list(range(self.num_edge_types))
-        self.freebatch_edge_types.remove(self.edge_type2idx[0, 0, 0])
-        self.freebatch_edge_types.remove(self.edge_type2idx[0, 1, 0])
-        self.freebatch_edge_types.remove(self.edge_type2idx[1, 0, 0])
+
+        edgeTypesToRemove = [(0, 0, 0), (0, 1, 0), (1, 0, 0)]
+        for edgeTypeToRemove in edgeTypesToRemove:
+            if edgeTypeToRemove in self.edge_type2idx:
+                self.freebatch_edge_types.remove(
+                    self.edge_type2idx[edgeTypeToRemove]
+                )
+
         self.iter = 0
