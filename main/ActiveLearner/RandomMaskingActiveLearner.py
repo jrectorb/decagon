@@ -21,7 +21,7 @@ class RandomMaskingActiveLearner(
         self.initDataSet = initDataSet
 
         self.adjMtxMasks = {
-            rel: np.zeros(mtx.shape)
+            rel: np.ones(mtx.shape)#zeros(mtx.shape)
             for rel, mtx in initDataSet.adjacencyMatrices.drugDrugRelationMtxs.items()
         }
 
@@ -62,10 +62,13 @@ class RandomMaskingActiveLearner(
                 'negative': grid[negTestEdgeIdxs],
             }
 
-            grid = np.delete(grid, np.hstack([posTestEdgeIdxs, negTestEdgeIdxs]), axis=0)
+            idxsToMask = grid[np.hstack([posTestEdgeIdxs, negTestEdgeIdxs])]
+            mtx[idxsToMask[:,0], idxsToMask[:,1]] = 0
 
-            graphTypeArr = np.full((grid.shape[0], 1), int(rel))
-            prePossbilitiesResult.append(np.hstack((graphTypeArr, grid)))
+            #grid = np.delete(grid, np.hstack([posTestEdgeIdxs, negTestEdgeIdxs]), axis=0)
+
+            #graphTypeArr = np.full((grid.shape[0], 1), int(rel))
+            #prePossbilitiesResult.append(np.hstack((graphTypeArr, grid)))
 
         possibilities = np.vstack(prePossbilitiesResult) \
                         if len(prePossbilitiesResult) > 0 else np.empty((0, 0, 0))
