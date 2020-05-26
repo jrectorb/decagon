@@ -9,4 +9,4 @@
 source /home/mkkr/anaconda3/envs/decagon/bin/activate
 export PYTHONPATH="${PYTHONPATH}:/home/mkkr/scratch/Projects/11_decagon"
 cd /scratch/mkkr/Projects/11_decagon
-python -u -m main.main --config configuration-all-data.json 1>&2
+python -u -m main.main --config configuration.json 1>&2
