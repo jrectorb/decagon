@@ -10,6 +10,7 @@ from pathlib import Path
 from typing import Dict
 import _io
 import tensorflow as tf
+import numpy as np
 import atexit
 import csv
 import os
@@ -35,6 +36,7 @@ class DecagonLogger(BaseLogger, functionalityType=LoggerType.DecagonLogger):
     ) -> None:
         super().__init__(config)
 
+        self.session: tf.Session = session
         self.dataSetId: str = dataSetId
         self.currEpoch: int = 1
 
@@ -44,9 +46,14 @@ class DecagonLogger(BaseLogger, functionalityType=LoggerType.DecagonLogger):
 
         self.checkpointer: TensorflowCheckpointer = checkpointer
 
+        self.writeNdarrays = bool(config.getSetting('WriteNdarrays'))
+        if self.writeNdarrays:
+            self.ndarrayWritePath = config.getSetting('NdarrayWriteDir')
+            Path(self.ndarrayWritePath).mkdir(parents=True, exist_ok=True)
+
         self.trainable: DecagonTrainable = trainable
         self.accuracyEvaluator: DecagonAccuracyEvaluator = DecagonAccuracyEvaluator(
-            session,
+            self.session,
             trainable.placeholders,
             trainable.optimizer.predictions,
             trainable.dataSetIterator.edge_type2idx,
@@ -121,6 +128,7 @@ class DecagonLogger(BaseLogger, functionalityType=LoggerType.DecagonLogger):
 
         if self.checkpointer.shouldCheckpoint:
             self.checkpointer.save()
+            self._writeAsNdarray(feedDict)
 
         return
 
@@ -220,4 +228,65 @@ APK: %f
             accuracyScores.auprc,
             accuracyScores.apk,
         )
+
+    def _writeAsNdarray(self, feedDict) -> None:
+        self._writeEmbeddings(feedDict)
+        self._writeRelationEmbeddingImportance(feedDict)
+        self._writeRelationMtx(feedDict)
+
+    def _writeEmbeddings(self, feedDict) -> None:
+        DRUG_GRAPH_IDX = 1
+        embeddingsToWrite = self.session.run(
+            self.trainable.model.embeddings[DRUG_GRAPH_IDX],
+            feed_dict=feedDict
+        )
+
+        np.save(
+            self.ndarrayWritePath + 'embeddings.npy',
+            embeddingsToWrite,
+            allow_pickle=False
+        )
+
+    def _writeRelationEmbeddingImportance(self, feedDict) -> None:
+        validIdxs = [
+            i for i in range(len(self.trainable.dataSetIterator.idx2edge_type))
+            if self._edgeTypeValid(i)
+        ]
+
+        embeddingImportanceMtxTensors = [
+            self.trainable.model.latent_varies[idx]
+            for idx in validIdxs
+        ]
+
+        embeddingImportanceMtx = self.session.run(
+            embeddingImportanceMtxTensors,
+            feed_dict=feedDict
+        )
+
+        np.savez(
+            self.ndarrayWritePath + 'EmbeddingImportance.npyz',
+            embeddingImportanceMtx,
+            allow_pickle=False
+        )
+
+    def _writeRelationMtx(self, feedDict) -> None:
+        globInterIdx = next((
+            i for i in range(len(self.trainable.dataSetIterator.idx2edge_type))
+            if self._edgeTypeValid(i)
+        ))
+
+        globalRelationMtx = self.session.run(
+            self.trainable.model.latent_inters[globInterIdx],
+            feed_dict=feedDict
+        )
+
+        np.save(
+            self.ndarrayWritePath + 'GlobalRelations.npy',
+            globalRelationMtx,
+            allow_pickle=False
+        )
+
+    def _edgeTypeValid(self, idx: int) -> bool:
+        DRUG_DRUG_GRAPH_TUPLE = (1, 1)
+        return self.trainable.dataSetIterator.idx2edge_type[idx][:2] == DRUG_DRUG_GRAPH_TUPLE
 
