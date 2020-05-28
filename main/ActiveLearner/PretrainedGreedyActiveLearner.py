@@ -1,8 +1,9 @@
-from .Dtos.Enums.TrainableType import TrainableType
-from .Dtos.Trainable import Trainable
+from ..Dtos.Enums.TrainableType import TrainableType
+from ..Dtos.Trainable import Trainable
 from .GreedyActiveLearner import GreedyActiveLearner
-from .Utils.ObjectFactory import ObjectFactory
-from typing import Type
+from ..Utils.ObjectFactory import ObjectFactory
+from typing import Type, Dict
+import tensorflow as tf
 
 class PretrainedGreedyActiveLearner(GreedyActiveLearner, functionalityType=None):
     def __init__(self, initDataSet, config):

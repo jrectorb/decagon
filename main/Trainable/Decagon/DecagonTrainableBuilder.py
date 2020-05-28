@@ -119,7 +119,6 @@ class DecagonTrainableBuilder(
         return IterationResults()
 
     def _recordTestEdges(self, dataSetIterator: EdgeMinibatchIterator) -> None:
-        import pdb; pdb.set_trace()
         f = open(self.config.getSetting('TestEdgeFilename'), 'w')
         writer = self._getWriter(f)
 
