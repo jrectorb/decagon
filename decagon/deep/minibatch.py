@@ -301,10 +301,12 @@ class EdgeMinibatchIterator(object):
                    <= len(self.train_edges[i,j][k]) - self.batch_size:
                 break
             else:
-                if self.iter % 4 in [0, 1, 2]:
+                if i == 0 or j == 0:
                     self.batch_num[self.current_edge_type_idx] = 0
-                else:
+                elif self.current_edge_type_idx in self.freebatch_edge_types:
                     self.freebatch_edge_types.remove(self.current_edge_type_idx)
+                else:
+                    print('Have %d items in free batch edge types.  found that curr idx %r is not in free batches' % (len(self.freebatch_edge_types), (i, j, k)))
 
         self.iter += 1
         start = self.batch_num[self.current_edge_type_idx] * self.batch_size
