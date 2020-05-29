@@ -40,5 +40,7 @@
     "UseGpu": true,
     "ShouldCheckpoint": true,
     "InvalidRelationIds": [3126, 20456, 27947, 26780, 9193, 38019],
-    "TestEdgeFilename": "/home/mkkr/scratch/Projects/11_decagon/test-edges-rel-masking.csv"
+    "TestEdgeFilename": "/home/mkkr/scratch/Projects/11_decagon/test-edges-rel-masking.csv",
+    "WriteNdarrays": true,
+    "NdarrayWriteDir": "/home/mkkr/scratch/Projects/11_decagon/ndarray-dump-rels-more/"
 }

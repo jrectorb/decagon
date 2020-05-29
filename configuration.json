@@ -26,6 +26,7 @@
     "batch_size": 256,
     "bias": true,
     "TestSetProportion": 0.1,
+    "InitTrainSetProportion": 1.0,
     "NumIterationsPerLog": 25,
     "NumIterationsPerCheckpoint": 100,
     "CheckpointDirectory": "/home/mkkr/scratch/Projects/11_decagon/all-ckpts/",
@@ -40,5 +41,5 @@
     "ShouldCheckpoint": true,
     "TestEdgeFilename": "/home/mkkr/scratch/Projects/11_decagon/test-edges-all.csv",
     "WriteNdarrays": true,
-    "NdarrayWriteDir": "/home/mkkr/scratch/Projects/11_decagon/ndarray-dump/"
+    "NdarrayWriteDir": "/home/mkkr/scratch/Projects/11_decagon/ndarray-dump-all/"
 }
