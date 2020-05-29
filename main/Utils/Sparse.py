@@ -48,7 +48,7 @@ class RelationCsrMatrix(sp.csr_matrix):
         # A reference to the transposed matrix
         self.transposedMtxLink: RelationCsrMatrix = None
 
-        self.id = "RelationCooMatrix|%d|%d" % (os.getpid(), RelationCooMatrix._numMtxsCreated)
+        self.id = "RelationCsrMatrix|%d|%d" % (os.getpid(), RelationCsrMatrix._numMtxsCreated)
         RelationCsrMatrix._numMtxsCreated += 1
 
     def transpose(self, axes=None, copy=False, setId=False) -> Type['RelationCsrMatrix']:
