@@ -7,6 +7,7 @@ from ..Dtos.Enums.ActiveLearnerType import ActiveLearnerType
 from ..Dtos.Enums.TrainableType import TrainableType
 from ..Dtos.Enums.TrainerType import TrainerType
 from ..Dtos.IterationResults import IterationResults
+from ..Dtos.NodeIds import SideEffectId
 from ..Dtos.Trainable import Trainable
 from ..Utils.ArgParser import ArgParser
 from ..Utils.Config import Config
@@ -42,7 +43,15 @@ class CheckpointToNdarrayWriter:
         self._setEnvVars(config)
         dataSet: Type[DataSet] = DataSetBuilder.build(config)
 
+        self._setSideEffectIdx(dataSet)
+
         return self._getTrainable(dataSet, config)
+
+    def _setSideEffectIdx(self, dataSet) -> None:
+        self.sideEffectIdx = [
+            SideEffectId.toDecagonFormat(raw)
+            for raw in dataSet.adjacencyMatrices.drugDrugRelationMtxs.keys()
+        ]
 
     def _getConfig(self) -> Config:
         argParser = ArgParser()
@@ -122,16 +131,25 @@ class CheckpointToNdarrayWriter:
             for idx in validIdxs
         ]
 
-        embeddingImportanceMtx = session.run(
+        embeddingImportanceMtxs = session.run(
             embeddingImportanceMtxTensors,
             feed_dict=feedDict
         )
 
-        np.savez(
-            self.ndarrayBaseDir + 'EmbeddingImportance.npyz',
-            embeddingImportanceMtx,
-            allow_pickle=False
-        )
+        for idx, importanceMtx in enumerate(embeddingImportanceMtxs):
+            tposeStr = ''
+            if idx >= len(self.sideEffectIdx):
+                idx -= len(self.sideEffectIdx)
+                tposeStr = '-Transposed'
+
+            sideEffectIdStr = '%s%s' % (self.sideEffectIdx[idx], tposeStr)
+
+            fname = 'EmbeddingImportance-%s.npy' % sideEffectIdStr
+            np.save(
+                self.ndarrayBaseDir + fname,
+                importanceMtx,
+                allow_pickle=False
+            )
 
     def _writeRelationMtx(self, trainable, session, feedDict) -> None:
         globInterIdx = next((
