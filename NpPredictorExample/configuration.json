@@ -1,5 +1,9 @@
 {
   "DataSetType": "DecagonPublicData",
+  "DecagonDrugDrugRelationsFilename": "/Users/jarridr/repos/decagon/data/bio-decagon-combo-samp.csv",
+  "DecagonProteinProteinRelationsFilename": "/Users/jarridr/repos/decagon/data/bio-decagon-ppi-samp.csv",
+  "DecagonDrugProteinRelationsFilename": "/Users/jarridr/repos/decagon/data/bio-decagon-targets.csv",
+  "DecagonNodeFeaturesFilename": "/Users/jarridr/repos/decagon/data/bio-decagon-mono.csv",
   "NpSaveDir": "/home/mkkr/scratch/Projects/11_decagon/all-ndarray-from-ckpts/",
   "TestEdgeFilename": "/home/mkkr/scratch/Projects/11_decagon/test-edges-all.csv"
 }
