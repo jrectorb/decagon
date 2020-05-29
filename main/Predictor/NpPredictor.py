@@ -1,5 +1,6 @@
 from ..DataSetParsers.AdjacencyMatrices.BaseAdjacencyMatricesBuilder import BaseAdjacencyMatricesBuilder
 from ..DataSetParsers.NodeLists.BaseNodeListsBuilder import BaseNodeListsBuilder
+from ..Dtos.PredictionsInformation import PredictionsInformation
 from ..Dtos.NodeLists import NodeLists
 from ..Dtos.NodeIds import DrugId, SideEffectId
 from ..Dtos.Enums.DataSetType import DataSetType
@@ -12,6 +13,7 @@ from threading import Lock
 from tqdm import tqdm
 import pandas as pd
 import numpy as np
+import sklearn.metrics
 import csv
 import sys
 import os
@@ -230,13 +232,37 @@ class NpPredictor:
 
             predsInfoHolderLock.release()
 
-    def predict_as_dataframe(self, importance_matrix=None):
+    def predict(self, importance_matrix=None) -> PredictionsInformation:
+        LABEL_IDX         = 2
+        PROBABILITIES_IDX = 3
+
+        ndarrayResults = self._predict(importance_matrix)
+
+        labels = ndarrayResults[:, LABEL_IDX]
+        probabilities = ndarrayResults[:, PROBABILITIES_IDX]
+
+        auroc = sklearn.metrics.roc_auc_score(labels, probabilities)
+        auprc = sklearn.metrics.average_precision_score(labels, probabilities)
+        confusionMtx = sklearn.metrics.confusion_matrix(
+            labels,
+            np.round(probabilities)
+        )
+
+        return PredictionsInformation(
+            probabilities=probabilities,
+            labels=labels,
+            auroc=auroc,
+            auprc=auprc,
+            confusionMatrix=confusionMtx,
+        )
+
+    def predict_as_dataframe(self, importance_matrix=None) -> pd.DataFrame:
         FROM_NODE_IDX     = 0
         TO_NODE_IDX       = 1
         LABEL_IDX         = 2
         PROBABILITIES_IDX = 3
 
-        ndarrayResults = self.predict(importance_matrix)
+        ndarrayResults = self._predict(importance_matrix)
 
         fromEmbeddings = self._getColEmbeddings(ndarrayResults[:, FROM_NODE_IDX].astype(np.int32))
         toEmbeddings = self._getColEmbeddings(ndarrayResults[:, TO_NODE_IDX].astype(np.int32))
@@ -252,7 +278,7 @@ class NpPredictor:
             'ImportanceMatrix': impMtx,
         }, ignore_index=True)
 
-    def predict(self, importance_matrix=None):
+    def _predict(self, importance_matrix=None) -> np.ndarray:
         importanceMtx = self.defaultImportanceMtx
         if importance_matrix is not None:
             importanceMtx = importance_mtx
@@ -314,12 +340,8 @@ def _write_as_parquet(relations_to_write):
         df.to_pickle(fname, compression='gzip')
 
 if __name__ == '__main__':
-    _write_as_parquet(
-        ['C0003126', 'C0020456', 'C0027947', 'C0026780', 'C0009193', 'C0038019']
-    )
-
-    #predictor = NpPredictor('C0000000')
-    #predictor.predict_as_dataframe()
+    predictor = NpPredictor('C0000000')
+    x = predictor.predict()
 
     #trainEdgeIter = TrainingEdgeIterator('C0000000')
     #x = trainEdgeIter.get_train_edges_as_embeddings_df()
