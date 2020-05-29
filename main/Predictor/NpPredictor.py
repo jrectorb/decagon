@@ -123,6 +123,11 @@ class NpPredictor:
         colEmbeddings = self._getColEmbeddings()
         globalInteractionMtx = self._getGlobalInteractionMtx
 
-        return colEmbeddings @ importanceMtx @ globalInteractionMtx @ importanceMtx @ rowEmbeddings
+        rawPreds = colEmbeddings @ importanceMtx @ globalInteractionMtx @ importanceMtx @ rowEmbeddings
+
+        # This will process to something like a 4-dim data frame with
+        # the relevant information for each prediction (i.e., embeddings,
+        # global interaction mtx, importance matrix)
+        return self._toDataFrame(rawPreds)
 
 
