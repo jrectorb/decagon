@@ -180,6 +180,24 @@ class TrainingEdgeIterator:
 
         return result
 
+    def get_train_edges_as_embeddings_df(self) -> pd.DataFrame:
+        FROM_NODE_IDX = 0
+        TO_NODE_IDX   = 1
+        LABELS_IDX    = 2
+
+        global predsInfoHolder
+        raw = predsInfoHolder.trainEdgeDict[self.relationId].astype(np.int32)
+
+        fromEmbeddings = np.squeeze(predsInfoHolder.embeddings[raw[:, FROM_NODE_IDX]])
+        toEmbeddings = np.squeeze(predsInfoHolder.embeddings[raw[:, TO_NODE_IDX]])
+
+        return pd.DataFrame().append({
+            'FromEmbeddings': fromEmbeddings,
+            'ToEmbeddings': toEmbeddings,
+            'Labels': raw[:, LABELS_IDX],
+            'GlobalInteractionMatrix': predsInfoHolder.globalInteraction,
+        }, ignore_index=True)
+
 class NpPredictor:
     def __init__(self, relationId: str) -> None:
         self._initGlobalInfosHolderIfNeeded()
@@ -216,15 +234,14 @@ class NpPredictor:
 
         impMtx = importance_matrix if importance_matrix else self.defaultImportanceMtx
         global predsInfoHolder
-        import pdb; pdb.set_trace()
-        return pd.DataFrame({
+        return pd.DataFrame().append({
             'FromEmbeddings': fromEmbeddings,
             'ToEmbeddings': toEmbeddings,
             'Labels': ndarrayResults[:, LABEL_IDX],
             'Probabilities': ndarrayResults[:, PROBABILITIES_IDX],
             'GlobalInteractionMatrix': predsInfoHolder.globalInteraction,
             'ImportanceMatrix': impMtx,
-        })
+        }, ignore_index=True)
 
     def predict(self, importance_matrix=None):
         importanceMtx = self.defaultImportanceMtx
@@ -280,9 +297,10 @@ class NpPredictor:
 
 if __name__ == '__main__':
     predictor = NpPredictor('C0000000')
-    predictor.predict()
+    predictor.predict_as_dataframe()
 
     trainEdgeIter = TrainingEdgeIterator('C0000000')
-    trainEdgeIter.get_train_edges_as_embeddings()
+    import pdb; pdb.set_trace()
+    x = trainEdgeIter.get_train_edges_as_embeddings_df()
     trainEdgeIter.get_train_edges()
 
