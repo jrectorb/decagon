@@ -159,7 +159,7 @@ class TrainingEdgeIterator:
     # the second column is the to node, and the third column is the edge label
     def get_train_edges(self) -> np.ndarray:
         global predsInfoHolder
-        return predsInfoHolder.trainEdges[self.relationId]
+        return predsInfoHolder.trainEdgeDict[self.relationId]
 
 
 class NpPredictor:
@@ -243,4 +243,8 @@ class NpPredictor:
 if __name__ == '__main__':
     predictor = NpPredictor('C0000000')
     predictor.predict()
+
+    import pdb; pdb.set_trace()
+    trainEdgeIter = TrainingEdgeIterator('C0000000')
+    trainEdgeIter.get_train_edges()
 
