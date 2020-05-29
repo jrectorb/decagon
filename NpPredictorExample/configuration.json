@@ -1,0 +1,5 @@
+{
+  "DataSetType": "DecagonPublicData",
+  "NpSaveDir": "/home/mkkr/scratch/Projects/11_decagon/all-ndarray-from-ckpts/",
+  "TestEdgeFilename": "/home/mkkr/scratch/Projects/11_decagon/test-edges-all.csv"
+}
