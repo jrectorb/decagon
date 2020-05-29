@@ -13,5 +13,5 @@ class PredictionsInformation:
         self.labels: np.ndarray = labels
         self.auroc: float = auroc
         self.auprc: float = auprc
-        self.confusionMatrix: np.ndarray= confusionMatrix
+        self.confusionMatrix: np.ndarray = confusionMatrix
 
