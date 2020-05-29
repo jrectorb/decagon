@@ -9,6 +9,7 @@ from ..Utils.ObjectFactory import ObjectFactory
 
 from typing import Type, Dict, Tuple
 from threading import Lock
+from tqdm import tqdm
 import pandas as pd
 import numpy as np
 import csv
@@ -65,9 +66,14 @@ class _PredictionsInfoHolder:
             if not self._isRowValid(row):
                 continue
 
+            fromNodeIdx = None
+            toNodeIdx = None
+            try:
+                fromNodeIdx = self.drugIdToIdx[row['FromNode']]
+                toNodeIdx = self.drugIdToIdx[row['ToNode']]
+            except KeyError:
+                continue
 
-            fromNodeIdx = self.drugIdToIdx[row['FromNode']]
-            toNodeIdx = self.drugIdToIdx[row['ToNode']]
             newArr = np.array([fromNodeIdx, toNodeIdx, int(row['Label'])])
 
             relId = row['RelationId']
@@ -113,6 +119,9 @@ class _PredictionsInfoHolder:
         mtxShape: Tuple[int, int]
     ) -> np.ndarray:
         # Get test edges and remove that labels from indices (slice of :2)
+        if not relId in self.testEdgeDict:
+            return indices
+
         testEdges = self.testEdgeDict[relId][:, :2]
 
         indicesLinear   = (indices[:, 0] * mtxShape[1]) + indices[:, 1]
@@ -295,12 +304,24 @@ class NpPredictor:
     def _sigmoid(self, vals):
         return 1. / (1 + np.exp(-vals))
 
-if __name__ == '__main__':
-    predictor = NpPredictor('C0000000')
-    predictor.predict_as_dataframe()
+def _write_as_parquet(relations_to_write):
+    for relationId in tqdm(relations_to_write):
+        edgeIterator = TrainingEdgeIterator(relationId)
 
-    trainEdgeIter = TrainingEdgeIterator('C0000000')
-    import pdb; pdb.set_trace()
-    x = trainEdgeIter.get_train_edges_as_embeddings_df()
-    trainEdgeIter.get_train_edges()
+        df = edgeIterator.get_train_edges_as_embeddings_df()
+
+        fname = os.getcwd() + '/train-edges-%s.pkl.gzip' % relationId
+        df.to_pickle(fname, compression='gzip')
+
+if __name__ == '__main__':
+    _write_as_parquet(
+        ['C0003126', 'C0020456', 'C0027947', 'C0026780', 'C0009193', 'C0038019']
+    )
+
+    #predictor = NpPredictor('C0000000')
+    #predictor.predict_as_dataframe()
+
+    #trainEdgeIter = TrainingEdgeIterator('C0000000')
+    #x = trainEdgeIter.get_train_edges_as_embeddings_df()
+    #trainEdgeIter.get_train_edges()
 
