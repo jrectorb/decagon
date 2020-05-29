@@ -1,4 +1,18 @@
+from ..DataSetParsers.AdjacencyMatrices.BaseAdjacencyMatricesBuilder import BaseAdjacencyMatricesBuilder
+from ..DataSetParsers.NodeLists.BaseNodeListsBuilder import BaseNodeListsBuilder
+from ..Dtos.NodeLists import NodeLists
+from ..Dtos.NodeIds import DrugId, SideEffectId
+from ..Dtos.Enums.DataSetType import DataSetType
+from ..Utils.ArgParser import ArgParser
+from ..Utils.Config import Config
+from ..Utils.ObjectFactory import ObjectFactory
+
+from typing import Type, Dict, Tuple
 from threading import Lock
+import numpy as np
+import csv
+import sys
+import os
 
 def _getConfig() -> Config:
     argParser = ArgParser()
@@ -16,16 +30,16 @@ predsInfoHolderLock = Lock()
 # This should only be instantiated once
 class _PredictionsInfoHolder:
     def __init__(self):
-        self.nodeLists: NodeLists = self._getDrugNodeList()
+        self.nodeLists: NodeLists = self._getNodeLists()
         self.drugIdToIdx = {
-            drugId: idx
+            DrugId.toDecagonFormat(drugId): idx
             for idx, drugId in enumerate(self.nodeLists.drugNodeList)
         }
 
         npSaveDir = config.getSetting('NpSaveDir')
 
         embeddingsFname = npSaveDir + 'embeddings.npy'
-        self.embeddings = np.load(embeddingsFile)
+        self.embeddings = np.load(embeddingsFname)
 
         globRelFname = npSaveDir + 'GlobalRelations.npy'
         self.globalInteraction = np.load(globRelFname)
@@ -33,7 +47,7 @@ class _PredictionsInfoHolder:
         self.testEdgeDict = self._buildTestEdgeDict()
         self.trainEdgeDict = self._buildTrainEdgeDict()
 
-    def _getDrugNodeLists(self) -> NodeLists:
+    def _getNodeLists(self) -> NodeLists:
         listBuilder = ObjectFactory.build(
             BaseNodeListsBuilder,
             DataSetType[config.getSetting('DataSetType')],
@@ -50,15 +64,16 @@ class _PredictionsInfoHolder:
             if not self._isRowValid(row):
                 continue
 
-            relId = row['RelationId']
-            if relId not in result:
-                result[relId] = np.array()
 
             fromNodeIdx = self.drugIdToIdx[row['FromNode']]
             toNodeIdx = self.drugIdToIdx[row['ToNode']]
-            newArr = np.array([fromNodeIdx, toNodeIdx, row['Label']])
+            newArr = np.array([fromNodeIdx, toNodeIdx, int(row['Label'])])
 
-            result[relId] = np.append(result[relId], newArr)
+            relId = row['RelationId']
+            if relId not in result:
+                result[relId] = newArr
+            else:
+                result[relId] = np.vstack([result[relId], newArr])
 
         return result
 
@@ -73,9 +88,11 @@ class _PredictionsInfoHolder:
 
         # Define indices here to not redefine it a bunch
         indices = None
-        for relId, mtx in self._getDrugDrugMtxs():
+        for relId, mtx in self._getDrugDrugMtxs().items():
             if indices is None:
                 indices = self._getIndices(mtx.shape)
+
+            relId = SideEffectId.toDecagonFormat(relId)
 
             trainEdgeIdxs = self._getTrainEdgeIdxs(indices, relId, mtx.shape)
             trainEdgeLabels = self._getTrainEdgeLabels(mtx, trainEdgeIdxs)
@@ -102,11 +119,11 @@ class _PredictionsInfoHolder:
 
         trainEdges = np.setdiff1d(indicesLinear, testEdgesLinear)
 
-        return np.dstack(np.unravel_index(trainEdges, mtxShape)).rreshape(-1, 2)
+        return np.dstack(np.unravel_index(trainEdges, mtxShape)).reshape(-1, 2)
 
-    def _getTrainEdgeLabels(self, mtx: np.ndarray, edgeIdxs: np.ndarray) -> np.ndarray:
-        idxsLinear = (edgeIdxs[:, 0] * mtx.shape[1]) + edges[:, 1]
-        return mtx[idxsLinear]
+    def _getTrainEdgeLabels(self, mtx, edgeIdxs: np.ndarray) -> np.ndarray:
+        idxsLinear = (edgeIdxs[:, 0] * mtx.shape[1]) + edgeIdxs[:, 1]
+        return np.take(mtx.todense(), idxsLinear).T
 
     def _getDrugDrugMtxs(self):
         adjMtxBuilder = ObjectFactory.build(
@@ -129,6 +146,8 @@ class TrainingEdgeIterator:
         self.relationId = relationId
 
     def _initGlobalInfosHolderIfNeeded(self) -> None:
+        global predsInfoHolder
+        global predsInfoHolderLock
         if predsInfoHolder is None:
             predsInfoHolderLock.acquire()
             if predsInfoHolder is None:
@@ -139,6 +158,7 @@ class TrainingEdgeIterator:
     # Returns 3-dim ndarray where the first column is the from node,
     # the second column is the to node, and the third column is the edge label
     def get_train_edges(self) -> np.ndarray:
+        global predsInfoHolder
         return predsInfoHolder.trainEdges[self.relationId]
 
 
@@ -148,13 +168,16 @@ class NpPredictor:
 
         npSaveDir = config.getSetting('NpSaveDir')
         relFname = 'EmbeddingImportance-%s.npy' % relationId
-        self.defaultImportanceMtx = np.load(relFname)
+        self.defaultImportanceMtx = np.load(npSaveDir + relFname)
 
+        global predsInfoHolder
         baseTestEdges = predsInfoHolder.testEdgeDict[relationId]
         self.negTestEdges = baseTestEdges[baseTestEdges[:, 2] == 0]
         self.posTestEdges = baseTestEdges[baseTestEdges[:, 2] == 1]
 
     def _initGlobalInfosHolderIfNeeded(self) -> None:
+        global predsInfoHolder
+        global predsInfoHolderLock
         if predsInfoHolder is None:
             predsInfoHolderLock.acquire()
             if predsInfoHolder is None:
@@ -162,20 +185,62 @@ class NpPredictor:
 
             predsInfoHolderLock.release()
 
+    def predict_as_dataframe(self, importance_matrix=None):
+        ndarrayResults = self.predict(importance_matrix)
+
     def predict(self, importance_matrix=None):
         importanceMtx = self.defaultImportanceMtx
         if importance_matrix is not None:
             importanceMtx = importance_mtx
 
-        rowEmbeddings = self._getRowEmbeddings()
-        colEmbeddings = self._getColEmbeddings()
-        globalInteractionMtx = self._getGlobalInteractionMtx
+        negEdgePreds = self._predictEdges(importanceMtx, self.negTestEdges, 0)
+        posEdgePreds = self._predictEdges(importanceMtx, self.posTestEdges, 1)
+
+        return np.vstack([negEdgePreds, posEdgePreds])
+
+    def _predictEdges(self, importanceMtx, edges, label):
+        FROM_EDGE_IDX = 0
+        TO_EDGE_IDX   = 1
+        COL_SHAPE_IDX = 1
+
+        global predsInfoHolder
+        globalInteractionMtx = predsInfoHolder.globalInteraction
+
+        colEmbeddings = predsInfoHolder.embeddings
+        rowEmbeddings = predsInfoHolder.embeddings.T
 
         rawPreds = colEmbeddings @ importanceMtx @ globalInteractionMtx @ importanceMtx @ rowEmbeddings
+        probabilities = self._sigmoid(rawPreds)
 
-        # This will process to something like a 4-dim data frame with
-        # the relevant information for each prediction (i.e., embeddings,
-        # global interaction mtx, importance matrix)
-        return self._toDataFrame(rawPreds)
+        sampledProbabilities = self._getSampledPredictions(
+            probabilities,
+            edges,
+            probabilities.shape[COL_SHAPE_IDX]
+        )
 
+        return np.hstack([edges, sampledProbabilities.reshape(-1, 1)])
+
+    def _getSampledPredictions(
+        self,
+        predictions: np.ndarray,
+        edgeSamples: np.ndarray,
+        colShape: int
+    ) -> np.ndarray:
+        linearEdgeIdxs = (edgeSamples[:, 0] * colShape) + edgeSamples[:, 1]
+        return np.take(predictions, linearEdgeIdxs)
+
+    def _getRowEmbeddings(self, edgeIdxs) -> np.ndarray:
+        global predsInfoHolder
+        return predsInfoHolder.embeddings[edgeIdxs].T
+
+    def _getColEmbeddings(self, edgeIdxs) -> np.ndarray:
+        global predsInfoHolder
+        return predsInfoHolder.embeddings[edgeIdxs]
+
+    def _sigmoid(self, vals):
+        return 1. / (1 + np.exp(-vals))
+
+if __name__ == '__main__':
+    predictor = NpPredictor('C0000000')
+    predictor.predict()
 
