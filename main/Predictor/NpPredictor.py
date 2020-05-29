@@ -69,6 +69,44 @@ class _PredictionsInfoHolder:
         return _isDrugNode(row['FromNode']) and _isDrugNode(row['ToNode'])
 
     def _buildTrainEdgeDict(self) -> None:
+        result = {}
+
+        # Define indices here to not redefine it a bunch
+        indices = None
+        for relId, mtx in self._getDrugDrugMtxs():
+            if indices is None:
+                indices = self._getIndices(mtx.shape)
+
+            trainEdgeIdxs = self._getTrainEdgeIdxs(indices, relId, mtx.shape)
+            trainEdgeLabels = self._getTrainEdgeLabels(mtx, trainEdgeIdxs)
+
+            result[relId] = np.hstack([trainEdgeIdxs, trainEdgeLabels])
+
+        return result
+
+    def _getIndices(self, shape) -> np.ndarray:
+        xx, yy = np.indices(shape)
+        return np.dstack([xx, yy]).reshape((-1, 2))
+
+    def _getTrainEdgeIdxs(
+        self,
+        indices: np.ndarray,
+        relId: str,
+        mtxShape: Tuple[int, int]
+    ) -> np.ndarray:
+        # Get test edges and remove that labels from indices (slice of :2)
+        testEdges = self.testEdgeDict[relId][:, :2]
+
+        indicesLinear   = (indices[:, 0] * mtxShape[1]) + indices[:, 1]
+        testEdgesLinear = (testEdges[:, 0] * mtxShape[1]) + testEdges[:, 1]
+
+        trainEdges = np.setdiff1d(indicesLinear, testEdgesLinear)
+
+        return np.dstack(np.unravel_index(trainEdges, mtxShape)).rreshape(-1, 2)
+
+    def _getTrainEdgeLabels(self, mtx: np.ndarray, edgeIdxs: np.ndarray) -> np.ndarray:
+        idxsLinear = (edgeIdxs[:, 0] * mtx.shape[1]) + edges[:, 1]
+        return mtx[idxsLinear]
 
     def _getDrugDrugMtxs(self):
         adjMtxBuilder = ObjectFactory.build(
@@ -86,12 +124,22 @@ class _PredictionsInfoHolder:
 
 class TrainingEdgeIterator:
     def __init__(self, relationId: str) -> None:
-        pass
+        self._initGlobalInfosHolderIfNeeded()
+
+        self.relationId = relationId
+
+    def _initGlobalInfosHolderIfNeeded(self) -> None:
+        if predsInfoHolder is None:
+            predsInfoHolderLock.acquire()
+            if predsInfoHolder is None:
+                predsInfoHolder = _PredictionsInfoHolder()
+
+            predsInfoHolderLock.release()
 
     # Returns 3-dim ndarray where the first column is the from node,
     # the second column is the to node, and the third column is the edge label
     def get_train_edges(self) -> np.ndarray:
-        pass
+        return predsInfoHolder.trainEdges[self.relationId]
 
 
 class NpPredictor:
