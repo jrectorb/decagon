@@ -9,6 +9,7 @@ from ..Utils.ObjectFactory import ObjectFactory
 
 from typing import Type, Dict, Tuple
 from threading import Lock
+import pandas as pd
 import numpy as np
 import csv
 import sys
@@ -161,6 +162,23 @@ class TrainingEdgeIterator:
         global predsInfoHolder
         return predsInfoHolder.trainEdgeDict[self.relationId]
 
+    def get_train_edges_as_embeddings(self) -> np.ndarray:
+        FROM_NODE_IDX = 0
+        TO_NODE_IDX   = 1
+        LABELS_IDX    = 2
+
+        global predsInfoHolder
+        raw = predsInfoHolder.trainEdgeDict[self.relationId].astype(np.int32)
+
+        fromEmbeddings = np.squeeze(predsInfoHolder.embeddings[raw[:, FROM_NODE_IDX]])
+        toEmbeddings = np.squeeze(predsInfoHolder.embeddings[raw[:, TO_NODE_IDX]])
+
+        result = np.empty((fromEmbeddings.shape[0], 32, 32, 1))
+        result[:, 0, :, 0] = fromEmbeddings
+        result[:, :, 0, 0] = toEmbeddings
+        result[:, 0, 0, :] = raw[:, LABELS_IDX]
+
+        return result
 
 class NpPredictor:
     def __init__(self, relationId: str) -> None:
@@ -186,7 +204,27 @@ class NpPredictor:
             predsInfoHolderLock.release()
 
     def predict_as_dataframe(self, importance_matrix=None):
+        FROM_NODE_IDX     = 0
+        TO_NODE_IDX       = 1
+        LABEL_IDX         = 2
+        PROBABILITIES_IDX = 3
+
         ndarrayResults = self.predict(importance_matrix)
+
+        fromEmbeddings = self._getColEmbeddings(ndarrayResults[:, FROM_NODE_IDX].astype(np.int32))
+        toEmbeddings = self._getColEmbeddings(ndarrayResults[:, TO_NODE_IDX].astype(np.int32))
+
+        impMtx = importance_matrix if importance_matrix else self.defaultImportanceMtx
+        global predsInfoHolder
+        import pdb; pdb.set_trace()
+        return pd.DataFrame({
+            'FromEmbeddings': fromEmbeddings,
+            'ToEmbeddings': toEmbeddings,
+            'Labels': ndarrayResults[:, LABEL_IDX],
+            'Probabilities': ndarrayResults[:, PROBABILITIES_IDX],
+            'GlobalInteractionMatrix': predsInfoHolder.globalInteraction,
+            'ImportanceMatrix': impMtx,
+        })
 
     def predict(self, importance_matrix=None):
         importanceMtx = self.defaultImportanceMtx
@@ -244,7 +282,7 @@ if __name__ == '__main__':
     predictor = NpPredictor('C0000000')
     predictor.predict()
 
-    import pdb; pdb.set_trace()
     trainEdgeIter = TrainingEdgeIterator('C0000000')
+    trainEdgeIter.get_train_edges_as_embeddings()
     trainEdgeIter.get_train_edges()
 
