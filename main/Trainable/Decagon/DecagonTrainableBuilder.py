@@ -168,8 +168,11 @@ class DecagonTrainableBuilder(
             fromGraphType = graphRelationType.graphType[FROM_GRAPH_IDX]
             toGraphType = graphRelationType.graphType[TO_GRAPH_IDX]
 
-            fromNodePre = nodeListDecoder[fromGraphType][edge[FROM_NODE_IDX]]
-            toNodePre   = nodeListDecoder[toGraphType][edge[TO_NODE_IDX]]
+            try:
+                fromNodePre = nodeListDecoder[fromGraphType][edge[FROM_NODE_IDX]]
+                toNodePre   = nodeListDecoder[toGraphType][edge[TO_NODE_IDX]]
+            except ValueError:
+                import pdb; pdb.set_trace()
 
             return {
                 'FromNode': decoders[fromGraphType](fromNodePre),

@@ -48,17 +48,21 @@ class TestEdgeFileRepairer:
         writer = self._getWriter(postFile)
 
         for row in reader:
-            preFromNode = self._preprocessNode(row['FromNode'])
-            preToNode = self._preprocessNode(row['ToNode'])
-
             writer.writerow({
-                'FromNode': self._postprocessNode(preFromNode),
-                'ToNode': self._postprocessNode(preToNode),
+                'FromNode': self._processNode(row['FromNode']),
+                'ToNode': self._processNode(row['FromNode']),
                 'RelationId': row['RelationId'],
                 'Label': row['Label'],
             })
 
         return
+
+    def _processNode(self, preStr: str) -> str:
+        if preStr[:3] != 'CID':
+            return preStr
+
+        preprocessed = self._preprocessNode(preStr)
+        return self._postprocessNode(preprocessed)
 
     def _getReader(self, f: _io.TextIOWrapper) -> csv.DictReader:
         return csv.DictReader(f)
@@ -77,19 +81,19 @@ class TestEdgeFileRepairer:
         return writer
 
     def _preprocessNode(self, nodeStr: str) -> Type[BaseNodeId]:
-        if nodeStr == '0':
-            import pdb; pdb.set_trace()
-
         if nodeStr[:3] == 'CID':
             return DrugId.fromDecagonFormat(nodeStr)
         else:
             return ProteinId.fromDecagonFormat(nodeStr)
 
     def _postprocessNode(self, node: Type[BaseNodeId]) -> str:
-        nodeType = type(node)
-        trueValue = self.nodeListDecoders[nodeType][node]
+        try:
+            nodeType = type(node)
+            trueValue = self.nodeListDecoders[nodeType][node]
 
-        return nodeType.toDecagonFormat(trueValue)
+            return nodeType.toDecagonFormat(trueValue)
+        except IndexError:
+            import pdb; pdb.set_trace()
 
 if __name__ == '__main__':
     repairer = TestEdgeFileRepairer()
