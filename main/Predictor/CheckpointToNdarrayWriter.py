@@ -174,8 +174,8 @@ class CheckpointToNdarrayWriter:
 
 if __name__ == '__main__':
     writer = CheckpointToNdarrayWriter(
-        '/Users/jarridr/repos/decagon/ckpts',
-        '/Users/jarridr/repos/decagon/ndarrays/'
+        '/home/mkkr/scratch/Projects/11_decagon/ckpts_rel_masking_more',
+        '/home/mkkr/scratch/Projects/11_decagon/rel-masking-more-ndarray-from-ckpts/'
     )
 
     writer.write()

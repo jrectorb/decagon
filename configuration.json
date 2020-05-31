@@ -39,7 +39,7 @@
     "ProportionUnmaskedPerIteration": 0.05,
     "UseGpu": true,
     "ShouldCheckpoint": true,
-    "TestEdgeFilename": "/home/mkkr/scratch/Projects/11_decagon/test-edges-all.csv",
+    "TestEdgeFilename": "/home/mkkr/scratch/Projects/11_decagon/test-edges-debugging.csv",
     "WriteNdarrays": true,
     "NdarrayWriteDir": "/home/mkkr/scratch/Projects/11_decagon/ndarray-dump-all/"
 }
