@@ -109,3 +109,5 @@ core*
 *tar
 *swp
 *ckpt*
+*npy
+*npz
