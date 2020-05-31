@@ -51,7 +51,6 @@ class DecagonDataSet:
         degreesDict: DegreesDict,
         config: Config
     ) -> None:
-        print({e: [x.shape for x in y] for e,y in adjacencyMatrixDict.items()})
         self.adjacencyMatrixDict: EdgeTypeAdjacencyMatrixDict = adjacencyMatrixDict
         self.edgeTypeMatrixDimDict: EdgeTypeMatrixDimensionsDict = edgeTypeMatrixDimDict
         self.edgeTypeNumMatricesDict: EdgeTypeNumMatricesDict = edgeTypeNumMatricesDict

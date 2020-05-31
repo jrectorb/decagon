@@ -15,3 +15,14 @@ class PredictionsInformation:
         self.auprc: float = auprc
         self.confusionMatrix: np.ndarray = confusionMatrix
 
+    def __str__(self):
+        return '''
+AUC: %f,
+AUPRC: %f,
+Confusion Matrix: %r
+        ''' % (
+            self.auroc,
+            self.auprc,
+            self.confusionMatrix,
+        )
+

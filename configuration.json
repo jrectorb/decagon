@@ -1,5 +1,5 @@
 {
-    "DataSetType": "DecagonDummyData",
+    "DataSetType": "DecagonPublicData",
     "TrainableType": "DecagonTrainable",
     "ActiveLearnerType": "RandomMaskingActiveLearner",
     "TrainerType": "DecagonTrainer",
@@ -9,7 +9,7 @@
     "TrainWithTransposedAdjacencyMatrices": true,
     "DecagonDrugDrugRelationsFilename": "/Users/jarridr/repos/decagon/data/bio-decagon-combo-samp.csv",
     "DecagonProteinProteinRelationsFilename": "/Users/jarridr/repos/decagon/data/bio-decagon-ppi-samp.csv",
-    "DecagonDrugProteinRelationsFilename": "/Users/jarridr/repos/decagon/data/bio-decagon-targets.csv",
+    "DecagonDrugProteinRelationsFilename": "/Users/jarridr/repos/decagon/data/bio-decagon-targets-samp.csv",
     "DecagonNodeFeaturesFilename": "/Users/jarridr/repos/decagon/data/bio-decagon-mono.csv",
     "PPIEdgeDecoder": "bilinear",
     "ProteinToDrugEdgeDecoder": "bilinear",
@@ -39,7 +39,8 @@
     "ProportionUnmaskedPerIteration": 0.05,
     "UseGpu": false,
     "ShouldCheckpoint": true,
-    "TestEdgeFilename": "/Users/jarridr/repos/decagon/test-edges.csv",
+    "TestEdgeFilename": "/Users/jarridr/repos/decagon/test-edges-all.csv",
     "WriteNdarrays": true,
-    "NdarrayWriteDir": "/Users/jarridr/repos/decagon/ndarray-dump/"
+    "NdarrayWriteDir": "/Users/jarridr/repos/decagon/ndarray-dump/",
+    "NpSaveDir": "/Users/jarridr/repos/decagon/all-ndarray-from-ckpts/"
 }

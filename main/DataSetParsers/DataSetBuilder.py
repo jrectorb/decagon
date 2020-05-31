@@ -30,7 +30,7 @@ class DataSetBuilder:
             config,
         )
 
-        return DataSet(idStr, adjacencyMatrices, nodeFeatures)
+        return DataSet(idStr, nodeLists, adjacencyMatrices, nodeFeatures)
 
     # Hacky here...
     @staticmethod
@@ -49,7 +49,7 @@ class DataSetBuilder:
             config,
         )
 
-        return DataSet(idStr, adjacencyMatrices, nodeFeatures)
+        return DataSet(idStr, nodeLists, adjacencyMatrices, nodeFeatures)
 
     @staticmethod
     def _getNodeLists(dataSetType: DataSetType, config: Config) -> NodeLists:

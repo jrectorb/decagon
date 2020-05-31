@@ -65,6 +65,8 @@ class _PredictionsInfoHolder:
 
         testEdgeReader = self._getTestEdgeReader()
         for row in testEdgeReader:
+            if row['RelationId'] == 'C0003126':
+                import pdb; pdb.set_trace()
             if not self._isRowValid(row):
                 continue
 
@@ -80,7 +82,7 @@ class _PredictionsInfoHolder:
 
             relId = row['RelationId']
             if relId not in result:
-                result[relId] = newArr
+                result[relId] = newArr.reshape((1, -1))
             else:
                 result[relId] = np.vstack([result[relId], newArr])
 
@@ -340,8 +342,10 @@ def _write_as_parquet(relations_to_write):
         df.to_pickle(fname, compression='gzip')
 
 if __name__ == '__main__':
-    predictor = NpPredictor('C0000000')
+    predictor = NpPredictor('C0003126')
+    import pdb; pdb.set_trace()
     x = predictor.predict()
+    print(x)
 
     #trainEdgeIter = TrainingEdgeIterator('C0000000')
     #x = trainEdgeIter.get_train_edges_as_embeddings_df()

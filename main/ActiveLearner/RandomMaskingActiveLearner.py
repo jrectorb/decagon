@@ -158,6 +158,7 @@ class RandomMaskingActiveLearner(
 
         return DataSet(
             idStr=idStr,
+            nodeLists=dataSet.nodeLists,
             adjacencyMatrices=adjMtxs,
             nodeFeatures=dataSet.nodeFeatures
         )

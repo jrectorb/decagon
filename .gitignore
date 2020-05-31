@@ -104,3 +104,8 @@ ckpts/
 *csv
 Untitled.ipynb
 *tar.gz
+*npy
+*pkl
+*npz
+*gzip
+ndarray-dumpembeddings.npy
