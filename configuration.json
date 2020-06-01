@@ -43,5 +43,5 @@
     "WriteNdarrays": true,
     "NdarrayWriteDir": "/home/mkkr/scratch/Projects/11_decagon/ndarray-dump-all/",
     "NpSaveDir": "/Users/jarridr/repos/decagon/all-ndarray-from-ckpts/",
-    "EdgeFileToRepair": "/Users/jarridr/repos/decagon/test-edges-all.csv"
+    "EdgeFileToRepair": "/home/mkkr/scratch/Projects/11_decagon/test-edges-all.csv"
 }
