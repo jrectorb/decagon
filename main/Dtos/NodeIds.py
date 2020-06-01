@@ -36,6 +36,10 @@ class BaseNodeId(int):
         SID123     -> 123
 
         '''
+        # If the protein is just 0, then return 0
+        if preStr == '0' or preStr[-1] == '0':
+            return '0'
+
         # Remove leters from string
         preStr = ''.join(filter(str.isdigit, preStr))
 

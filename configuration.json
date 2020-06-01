@@ -25,7 +25,7 @@
     "max_margin": 0.1,
     "batch_size": 256,
     "bias": true,
-    "TestSetProportion": 0.1,
+    "TestSetProportion": 0.8,
     "InitTrainSetProportion": 1.0,
     "NumIterationsPerLog": 25,
     "NumIterationsPerCheckpoint": 100,
@@ -41,5 +41,7 @@
     "ShouldCheckpoint": true,
     "TestEdgeFilename": "/home/mkkr/scratch/Projects/11_decagon/test-edges-debugging.csv",
     "WriteNdarrays": true,
-    "NdarrayWriteDir": "/home/mkkr/scratch/Projects/11_decagon/ndarray-dump-all/"
+    "NdarrayWriteDir": "/home/mkkr/scratch/Projects/11_decagon/ndarray-dump-all/",
+    "NpSaveDir": "/Users/jarridr/repos/decagon/all-ndarray-from-ckpts/",
+    "EdgeFileToRepair": "/Users/jarridr/repos/decagon/test-edges-all.csv"
 }

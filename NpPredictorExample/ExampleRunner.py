@@ -1,4 +1,4 @@
-from .main.Predictor.NpPredictor import NpPredictor, TrainingEdgeIterator
+from ..main.Predictor.NpPredictor import NpPredictor, TrainingEdgeIterator
 from sklearn import metrics
 import sys
 

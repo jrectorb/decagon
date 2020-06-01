@@ -4,6 +4,13 @@ import json
 class Config:
     CONF_FILE_PATH = 'configuration.json'
 
+    @staticmethod
+    def getConfig():
+        argParser = ArgParser()
+        argParser.parse()
+
+        return Config(argParser)
+
     def __init__(self, argParserObj: ArgParser) -> None:
         if argParserObj is None or not isinstance(argParserObj, ArgParser):
             raise TypeError('argParserObj was passed to config uninitialized')

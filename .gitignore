@@ -111,3 +111,8 @@ core*
 *ckpt*
 *npy
 *npz
+*npy
+*pkl
+*npz
+*gzip
+ndarray-dumpembeddings.npy
