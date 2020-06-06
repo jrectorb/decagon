@@ -14,14 +14,12 @@ class NpzFixer:
         self.edgeSets = mtxBuilder._getValidEdgeSets()
 
     def fixFile(self, fname: str) -> None:
-        import pdb; pdb.set_trace()
         arrDict = {}
 
         allArr = np.load(fname)['arr_0']
         for i, relationId in enumerate(self.edgeSets.keys()):
             arrDict[SideEffectId.toDecagonFormat(relationId)] = allArr[i]
 
-        import pdb; pdb.set_trace()
         np.savez(fname + '.repaired', **arrDict)
 
 if __name__ == '__main__':
