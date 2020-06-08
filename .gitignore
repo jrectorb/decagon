@@ -116,3 +116,4 @@ core*
 *npz
 *gzip
 ndarray-dumpembeddings.npy
+ndarray-dump-rels-more/

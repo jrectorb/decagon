@@ -48,6 +48,7 @@ class RandomMaskingActiveLearner(
         testEdgeResult = {}
         for rel, mtx in self.adjMtxMasks.items():
             if not self._isRelationValid(rel):
+                self.adjMtxMasks[rel] = np.zeros(mtx.shape)
                 continue
 
             grid = self._getShapePossibleIdxs(mtx.shape)

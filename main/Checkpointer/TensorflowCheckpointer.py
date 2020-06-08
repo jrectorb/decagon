@@ -6,6 +6,7 @@ from pathlib import Path
 import string
 import tensorflow as tf
 import tensorflow.contrib.eager as tfe
+import datetime
 import os
 
 NON_DIGIT_CHARS = set(string.printable).difference(set(string.digits))
@@ -30,6 +31,9 @@ class TensorflowCheckpointer(BaseCheckpointer):
         ckptBaseName: str = 'ckpt'
         if customName:
             ckptBaseName = ckptBaseName + "_%s" % customName
+
+        ckptBaseName = ckptBaseName + "_%s" % datetime.datetime.now()
+        ckptBaseName = ckptBaseName.replace(' ', '-')
 
         return ckptDir + ckptBaseName
 

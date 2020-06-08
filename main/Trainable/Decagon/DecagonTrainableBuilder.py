@@ -170,11 +170,11 @@ class DecagonTrainableBuilder(
             fromGraphType = graphRelationType.graphType[FROM_GRAPH_IDX]
             toGraphType = graphRelationType.graphType[TO_GRAPH_IDX]
 
-            fromLen = 586 if fromGraphType == 1 else 17216
-            toLen = 586 if fromGraphType == 1 else 17216
+            #fromLen = 586 if fromGraphType == 1 else 17216
+            #toLen = 586 if fromGraphType == 1 else 17216
 
-            if edge[FROM_NODE_IDX] >= fromLen or edge[TO_NODE_IDX] >= toLen:
-                import pdb; pdb.set_trace()
+            #if edge[FROM_NODE_IDX] >= fromLen or edge[TO_NODE_IDX] >= toLen:
+            #    import pdb; pdb.set_trace()
 
             fromNodePre = nodeListDecoder[fromGraphType][edge[FROM_NODE_IDX]]
             toNodePre   = nodeListDecoder[toGraphType][edge[TO_NODE_IDX]]
